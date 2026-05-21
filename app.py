@@ -1,13 +1,17 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, Response
 import psycopg2
 import psycopg2.extras
 import logging
 import json
 import traceback
+import queue
 from logging.handlers import RotatingFileHandler
 from datetime import datetime, timedelta
 
 app = Flask(__name__)
+
+# ---------- SSE 客户端队列 ----------
+sse_clients = []
 
 # ---------- 日志配置 ----------
 console_handler = logging.StreamHandler()
@@ -107,6 +111,23 @@ def handle_sensor_data():
         cur.close()
         conn.close()
 
+        # 推送新数据到所有在线的 SSE 客户端
+        push_data = {
+            'time': datetime.fromtimestamp(timestamp_unix).isoformat() if timestamp_unix else datetime.now().isoformat(),
+            'temp': temp,
+            'air_humi': air_humi,
+            'soil_humi': soil_humi,
+            'light': light,
+            'ph': ph,
+            'co2': co2
+        }
+        push_str = json.dumps(push_data, ensure_ascii=False)
+        for client_q in list(sse_clients):
+            try:
+                client_q.put_nowait(push_str)
+            except queue.Full:
+                pass
+
         log_info(f"Data inserted successfully: temp={temp}, air_humi={air_humi}, time={timestamp_unix}")
         return jsonify({"code": 0, "message": "success"}), 200
 
@@ -125,6 +146,24 @@ def handle_sensor_data():
         log_error(f"Unexpected error: {e}")
         log_error(traceback.format_exc())
         return jsonify({"code": 500, "message": str(e)}), 500
+
+# ---------- SSE 推送接口 ----------
+@app.route('/api/stream')
+def stream():
+    def event_stream():
+        q = queue.Queue(maxsize=10)
+        sse_clients.append(q)
+        try:
+            while True:
+                # 阻塞等待，直到有新数据
+                data = q.get()
+                yield f"data: {data}\n\n"
+        except GeneratorExit:
+            if q in sse_clients:
+                sse_clients.remove(q)
+
+    # 声明该请求是一个长连接事件流
+    return Response(event_stream(), mimetype="text/event-stream")
 
 # ---------- 最新数据（卡片用）----------
 @app.route('/api/latest')

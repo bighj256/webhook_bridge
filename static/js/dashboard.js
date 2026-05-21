@@ -207,8 +207,24 @@ async function onModalControlChange() {
 
 // ---------- 注册事件与启动 ----------
 document.addEventListener('DOMContentLoaded', () => {
+    // 首次加载获取一次最新数据
     fetchLatestAndUpdate();
-    setInterval(fetchLatestAndUpdate, 5000);
+    
+    // 建立 SSE 长连接，监听服务器推送
+    const evtSource = new EventSource('/api/stream');
+    evtSource.onmessage = function(event) {
+        try {
+            const data = JSON.parse(event.data);
+            updateUI(data);
+            console.log("收到服务器推送新数据:", data);
+        } catch(e) {
+            console.error("解析 SSE 数据失败", e);
+        }
+    };
+    evtSource.onerror = function(err) {
+        console.error("SSE 连接出错，浏览器会自动尝试重连", err);
+    };
+
     setInterval(updateClock, 1000);
     document.getElementById('manualRefreshBtn').addEventListener('click', manualRefresh);
     updateClock();
