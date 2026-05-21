@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>智慧农业监测系统</title>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <!-- 分离的样式与脚本 -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<div class="dashboard">
+    <div class="header">
+        <div class="title">
+            <span style="color: #000000;">🌾</span> Agri Monitor
+        </div>
+        <div class="sub">智慧农业 · 全环境监测站（点击卡片查看历史趋势）</div>
+        <div class="header-meta">
+            <div class="live-time" id="liveClock">--:--:--</div>
+            <button class="refresh-btn" id="manualRefreshBtn">🔄 一键刷新传感器</button>
+        </div>
+    </div>
+
+    <div class="grid">
+        <div class="card" data-type="ph">
+            <div class="card-header"><div class="icon">🧪</div><h3>土壤 pH 值</h3></div>
+            <div class="value-area"><span class="value" id="pHValue">--</span><span class="unit"></span></div>
+            <div class="progress-container"><div class="progress-fill" id="pHFill" style="width: 0%;"></div></div>
+            <div class="status-row"><span class="status-badge" id="pHStatus">--</span><span class="range-hint">适宜 6.0~7.5</span></div>
+        </div>
+        <div class="card" data-type="co2">
+            <div class="card-header"><div class="icon">💨</div><h3>CO₂ 浓度</h3></div>
+            <div class="value-area"><span class="value" id="co2Value">--</span><span class="unit">ppm</span></div>
+            <div class="progress-container"><div class="progress-fill" id="co2Fill" style="width: 0%;"></div></div>
+            <div class="status-row"><span class="status-badge" id="co2Status">--</span><span class="range-hint">适宜 400~800ppm</span></div>
+        </div>
+        <div class="card" data-type="soilMoisture">
+            <div class="card-header"><div class="icon">💧</div><h3>土壤湿度</h3></div>
+            <div class="value-area"><span class="value" id="moistureValue">--</span><span class="unit">%RH</span></div>
+            <div class="progress-container"><div class="progress-fill" id="moistureFill" style="width: 0%;"></div></div>
+            <div class="status-row"><span class="status-badge" id="moistureStatus">--</span><span class="range-hint">适宜 30%~70%</span></div>
+        </div>
+        <div class="card" data-type="light">
+            <div class="card-header"><div class="icon">☀️</div><h3>光照强度</h3></div>
+            <div class="value-area"><span class="value" id="lightValue">--</span><span class="unit">lux</span></div>
+            <div class="progress-container"><div class="progress-fill" id="lightFill" style="width: 0%;"></div></div>
+            <div class="status-row"><span class="status-badge" id="lightStatus">--</span><span class="range-hint">适宜 2000~10000 lux</span></div>
+        </div>
+        <div class="card" data-type="airTemp">
+            <div class="card-header"><div class="icon">🌡️</div><h3>空气温度</h3></div>
+            <div class="value-area"><span class="value" id="airTempValue">--</span><span class="unit">°C</span></div>
+            <div class="progress-container"><div class="progress-fill" id="tempFill" style="width: 0%;"></div></div>
+            <div class="status-row"><span class="status-badge" id="tempStatus">--</span><span class="range-hint">适宜 18~28°C</span></div>
+        </div>
+        <div class="card" data-type="airHum">
+            <div class="card-header"><div class="icon">🌧️</div><h3>空气湿度</h3></div>
+            <div class="value-area"><span class="value" id="airHumValue">--</span><span class="unit">%RH</span></div>
+            <div class="progress-container"><div class="progress-fill" id="airHumFill" style="width: 0%;"></div></div>
+            <div class="status-row"><span class="status-badge" id="airHumStatus">--</span><span class="range-hint">适宜 45%~75%</span></div>
+        </div>
+    </div>
+    <div class="footer">🌿 数据来自数据库，每5秒自动刷新 | 点击卡片查看趋势</div>
+</div>
+
+<!-- 模态框 -->
+<div id="chartModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2><span id="modalIcon">📊</span> <span id="modalTitle">历史趋势</span></h2>
+            <button class="close-btn" id="closeModalBtn">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="chart-controls">
+                <div class="ctrl-group">
+                    <label>📅 时间单位：</label>
+                    <select id="modalTimeUnit">
+                        <option value="hour">小时 (近24h)</option>
+                        <option value="day">天 (近7d)</option>
+                        <option value="week">周 (近8周)</option>
+                        <option value="month">月 (近12月)</option>
+                        <option value="year">年 (近5年)</option>
+                    </select>
+                </div>
+                <div class="ctrl-group">
+                    <label>📊 图表类型：</label>
+                    <select id="modalChartType">
+                        <option value="line">折线图</option>
+                        <option value="bar">柱状图</option>
+                    </select>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="modalChartCanvas"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+</html>
