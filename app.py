@@ -5,6 +5,8 @@ import logging
 import json
 import traceback
 import queue
+import csv
+import io
 from logging.handlers import RotatingFileHandler
 from datetime import datetime, timedelta
 
@@ -199,80 +201,189 @@ def latest_data():
         log_error(traceback.format_exc())
         return jsonify({'error': str(e)}), 500
 
-# ---------- 历史趋势 API ----------
-@app.route('/api/trend/<param>')
-def trend_data(param):
-    """支持 param: ph, co2, soil_humi, light, temp, air_humi
-       unit: hour, day, week, month, year
-    """
-    unit = request.args.get('unit', 'hour')
-    allowed_fields = {
-        'ph': 'ph',
-        'co2': 'co2',
-        'soil_humi': 'soil_humi',
-        'light': 'light',
-        'temp': 'temp',
-        'air_humi': 'air_humi'
-    }
-    if param not in allowed_fields:
-        log_warning(f"Invalid trend parameter: {param}")
-        return jsonify({'error': 'invalid param'}), 400
+# ---------- 聚合统计 API ----------
+@app.route('/api/stats')
+def get_stats():
+    try:
+        conn = psycopg2.connect(**DB_CONFIG)
+        cur = conn.cursor()
+        sql = """
+            SELECT 
+                AVG(temp), MAX(temp), MIN(temp),
+                AVG(air_humi), MAX(air_humi), MIN(air_humi),
+                AVG(soil_humi), MAX(soil_humi), MIN(soil_humi),
+                AVG(light), MAX(light), MIN(light),
+                AVG(ph), MAX(ph), MIN(ph),
+                AVG(co2), MAX(co2), MIN(co2)
+            FROM sensor_data
+            WHERE time >= NOW() - INTERVAL '24 hours'
+        """
+        cur.execute(sql)
+        row = cur.fetchone()
+        cur.close()
+        conn.close()
+        
+        if not row or row[0] is None:
+            return jsonify({})
+            
+        stats = {
+            'temp': {'avg': round(row[0], 1), 'max': round(row[1], 1), 'min': round(row[2], 1)},
+            'air_humi': {'avg': round(row[3], 1), 'max': round(row[4], 1), 'min': round(row[5], 1)},
+            'soil_humi': {'avg': round(row[6], 1), 'max': round(row[7], 1), 'min': round(row[8], 1)},
+            'light': {'avg': round(row[9], 1), 'max': round(row[10], 1), 'min': round(row[11], 1)},
+            'ph': {'avg': round(row[12], 1), 'max': round(row[13], 1), 'min': round(row[14], 1)},
+            'co2': {'avg': round(row[15], 1), 'max': round(row[16], 1), 'min': round(row[17], 1)}
+        }
+        return jsonify(stats)
+    except Exception as e:
+        log_error(f"Error in /api/stats: {e}")
+        return jsonify({'error': str(e)}), 500
 
-    field = allowed_fields[param]
+# ---------- 数据导出 API ----------
+@app.route('/api/export')
+def export_data():
+    start_str = request.args.get('start')
+    end_str = request.args.get('end')
+    params_str = request.args.get('params', 'temp')
+    
+    allowed_fields = ['ph', 'co2', 'soil_humi', 'light', 'temp', 'air_humi']
+    fields = [f.strip() for f in params_str.split(',') if f.strip() in allowed_fields]
+    if not fields:
+        return jsonify({'error': 'invalid params'}), 400
+        
+    try:
+        conn = psycopg2.connect(**DB_CONFIG)
+        cur = conn.cursor()
+        
+        query = f"SELECT time, {', '.join(fields)} FROM sensor_data "
+        sql_params = []
+        conditions = []
+        
+        if start_str:
+            conditions.append("time >= %s")
+            sql_params.append(start_str)
+        if end_str:
+            conditions.append("time <= %s")
+            sql_params.append(end_str)
+            
+        if conditions:
+            query += " WHERE " + " AND ".join(conditions)
+            
+        query += " ORDER BY time DESC LIMIT 10000"
+        
+        cur.execute(query, tuple(sql_params))
+        rows = cur.fetchall()
+        cur.close()
+        conn.close()
+        
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerow(['Time'] + fields)
+        for row in rows:
+            writer.writerow([row[0].strftime('%Y-%m-%d %H:%M:%S')] + list(row[1:]))
+            
+        return Response(
+            output.getvalue(),
+            mimetype="text/csv",
+            headers={"Content-disposition": "attachment; filename=sensor_data.csv"}
+        )
+    except Exception as e:
+        log_error(f"Error in /api/export: {e}")
+        return jsonify({'error': str(e)}), 500
+
+# ---------- 历史趋势 API ----------
+@app.route('/api/trend')
+def trend_data():
+    params_str = request.args.get('params', 'temp')
+    unit = request.args.get('unit', 'hour')
+    start_str = request.args.get('start')
+    end_str = request.args.get('end')
+    
+    allowed_fields = ['ph', 'co2', 'soil_humi', 'light', 'temp', 'air_humi']
+    fields = [f.strip() for f in params_str.split(',') if f.strip() in allowed_fields][:2]
+    
+    if not fields:
+        return jsonify({'error': 'invalid params'}), 400
 
     now = datetime.now()
-    intervals = {
-        'hour':  (now - timedelta(hours=24),   'hour',     24),
-        'day':   (now - timedelta(days=7),     'day',      7),
-        'week':  (now - timedelta(weeks=8),    'week',     8),
-        'month': (now - timedelta(days=365),   'month',    12),
-        'year':  (now - timedelta(days=1825),  'year',     5)
-    }
-    if unit not in intervals:
-        log_warning(f"Invalid time unit for trend: {unit}")
-        return jsonify({'error': 'invalid unit'}), 400
-
-    start_date, grain, limit = intervals[unit]
+    if start_str:
+        try:
+            # Handle frontend datetime-local format (e.g. 2026-05-22T01:58)
+            start_date = datetime.fromisoformat(start_str.replace('Z', '+00:00'))
+            end_date = datetime.fromisoformat(end_str.replace('Z', '+00:00')) if end_str else now
+            
+            delta = end_date - start_date
+            if delta.days > 60:
+                grain = 'day'
+            elif delta.days > 2:
+                grain = 'hour'
+            else:
+                grain = 'minute'
+            
+            limit = 1000
+        except ValueError:
+            return jsonify({'error': 'invalid date format'}), 400
+    else:
+        intervals = {
+            'hour':  (now - timedelta(hours=24),   'hour',     24),
+            'day':   (now - timedelta(days=7),     'day',      7),
+            'week':  (now - timedelta(weeks=8),    'week',     8),
+            'month': (now - timedelta(days=365),   'month',    12),
+            'year':  (now - timedelta(days=1825),  'year',     5)
+        }
+        if unit not in intervals:
+            return jsonify({'error': 'invalid unit'}), 400
+        start_date, grain, limit = intervals[unit]
+        end_date = now
 
     try:
         conn = psycopg2.connect(**DB_CONFIG)
         cur = conn.cursor()
+        
+        avg_selects = ", ".join([f"AVG({f}) AS avg_{f}" for f in fields])
+        
         sql = f"""
             SELECT
                 DATE_TRUNC('{grain}', time) AS bucket,
-                AVG({field}) AS avg_value
+                {avg_selects}
             FROM sensor_data
-            WHERE time >= %s
+            WHERE time >= %s AND time <= %s
             GROUP BY bucket
             ORDER BY bucket ASC
         """
-        cur.execute(sql, (start_date,))
+        cur.execute(sql, (start_date, end_date))
         rows = cur.fetchall()
         cur.close()
         conn.close()
 
         labels = []
-        values = []
-        for bucket, avg_val in rows:
-            if avg_val is None:
-                continue
-            if unit == 'hour':
+        datasets = {f: [] for f in fields}
+        
+        for row in rows:
+            bucket = row[0]
+            if unit == 'hour' or grain == 'hour':
                 labels.append(bucket.strftime('%m-%d %H:00'))
-            elif unit == 'day':
-                labels.append(bucket.strftime('%m-%d (%a)'))
+            elif unit == 'day' or grain == 'day':
+                labels.append(bucket.strftime('%m-%d'))
             elif unit == 'week':
                 labels.append(f"W{bucket.isocalendar()[1]}")
             elif unit == 'month':
                 labels.append(bucket.strftime('%Y-%m'))
-            else:  # year
+            elif grain == 'minute':
+                labels.append(bucket.strftime('%H:%M'))
+            else:  
                 labels.append(bucket.strftime('%Y'))
-            values.append(round(float(avg_val), 2))
+                
+            for idx, f in enumerate(fields):
+                val = row[idx + 1]
+                datasets[f].append(round(float(val), 2) if val is not None else None)
 
-        labels = labels[-limit:]
-        values = values[-limit:]
+        if not start_str: 
+            labels = labels[-limit:]
+            for f in fields:
+                datasets[f] = datasets[f][-limit:]
 
-        log_info(f"Trend data for {param} with unit={unit}: returned {len(labels)} points")
-        return jsonify({'labels': labels, 'values': values})
+        return jsonify({'labels': labels, 'datasets': datasets})
 
     except Exception as e:
         log_error(f"Error in /api/trend: {e}")

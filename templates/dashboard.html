@@ -22,6 +22,15 @@
         </div>
     </div>
 
+    <!-- 新增：数据聚合统计卡片栏 (今日/近24h) -->
+    <div class="stats-bar" id="statsBar">
+        <div class="stat-item"><span class="stat-label">今日平均温度:</span> <strong class="stat-val" id="statAvgTemp">--</strong></div>
+        <div class="stat-item"><span class="stat-label">今日最高温度:</span> <strong class="stat-val stat-max" id="statMaxTemp">--</strong></div>
+        <div class="stat-item"><span class="stat-label">今日平均空湿:</span> <strong class="stat-val" id="statAvgHum">--</strong></div>
+        <div class="stat-item"><span class="stat-label">今日最高 CO2:</span> <strong class="stat-val stat-max" id="statMaxCo2">--</strong></div>
+        <div class="stat-item"><span class="stat-label">今日最低 pH:</span> <strong class="stat-val stat-min" id="statMinPh">--</strong></div>
+    </div>
+
     <div class="grid">
         <div class="card" data-type="ph">
             <div class="card-header"><div class="icon">🧪</div><h3>土壤 pH 值</h3></div>
@@ -68,22 +77,49 @@
     <div class="modal-content">
         <div class="modal-header">
             <h2><span id="modalIcon">📊</span> <span id="modalTitle">历史趋势</span></h2>
-            <button class="close-btn" id="closeModalBtn">&times;</button>
+            <div class="modal-header-actions">
+                <button class="export-btn" id="exportCsvBtn">📥 导出 CSV</button>
+                <button class="close-btn" id="closeModalBtn">&times;</button>
+            </div>
         </div>
         <div class="modal-body">
             <div class="chart-controls">
+                <!-- 指标选择 (多选) -->
                 <div class="ctrl-group">
-                    <label>📅 时间单位：</label>
+                    <label>📌 指标 (最多2个)：</label>
+                    <div class="metric-checkboxes" id="metricCheckboxes">
+                        <label><input type="checkbox" value="ph" data-name="pH值"> pH</label>
+                        <label><input type="checkbox" value="co2" data-name="CO2"> CO2</label>
+                        <label><input type="checkbox" value="soil_humi" data-name="土壤湿度"> 土湿</label>
+                        <label><input type="checkbox" value="light" data-name="光照"> 光照</label>
+                        <label><input type="checkbox" value="temp" data-name="空气温度"> 空温</label>
+                        <label><input type="checkbox" value="air_humi" data-name="空气湿度"> 空湿</label>
+                    </div>
+                </div>
+
+                <!-- 时间选择 (预设 or 自定义) -->
+                <div class="ctrl-group">
+                    <label>📅 时段：</label>
                     <select id="modalTimeUnit">
-                        <option value="hour">小时 (近24h)</option>
-                        <option value="day">天 (近7d)</option>
-                        <option value="week">周 (近8周)</option>
-                        <option value="month">月 (近12月)</option>
-                        <option value="year">年 (近5年)</option>
+                        <option value="hour">近 24 小时</option>
+                        <option value="day">近 7 天</option>
+                        <option value="week">近 8 周</option>
+                        <option value="month">近 12 个月</option>
+                        <option value="year">近 5 年</option>
+                        <option value="custom">自定义时段...</option>
                     </select>
                 </div>
+
+                <!-- 自定义时间范围 (默认隐藏) -->
+                <div class="ctrl-group custom-date-group" id="customDateGroup" style="display: none;">
+                    <input type="datetime-local" id="customStartDate">
+                    <span>至</span>
+                    <input type="datetime-local" id="customEndDate">
+                    <button class="apply-btn" id="applyCustomDateBtn">查询</button>
+                </div>
+
                 <div class="ctrl-group">
-                    <label>📊 图表类型：</label>
+                    <label>📊 类型：</label>
                     <select id="modalChartType">
                         <option value="line">折线图</option>
                         <option value="bar">柱状图</option>

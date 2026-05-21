@@ -258,3 +258,114 @@ body {
     .chart-container { height: 250px; }
     .value { font-size: 2rem; }
 }
+
+/* 统计聚合卡片栏 */
+.stats-bar {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    flex-wrap: wrap;
+    background: rgba(255, 255, 255, 0.85);
+    padding: 1rem;
+    border-radius: 1rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    margin-bottom: 1.5rem;
+    gap: 1rem;
+    border: 1px solid rgba(120, 160, 90, 0.3);
+}
+
+.stat-item {
+    font-size: 0.95rem;
+    color: #2b5e2b;
+}
+
+.stat-label {
+    color: #557948;
+    margin-right: 5px;
+}
+
+.stat-val {
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.stat-max { color: #bc4e2c; }
+.stat-min { color: #235b10; }
+
+/* 模态框头部按钮组 */
+.modal-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.export-btn {
+    background: #4a8b2c;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.export-btn:hover {
+    background: #397a1f;
+    transform: translateY(-2px);
+}
+
+/* 复选框组 */
+.metric-checkboxes {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    font-size: 0.9rem;
+}
+
+.metric-checkboxes label {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    cursor: pointer;
+    background: #f0f7ec;
+    padding: 4px 8px;
+    border-radius: 6px;
+    border: 1px solid #d4e9d0;
+    transition: all 0.2s ease;
+}
+
+.metric-checkboxes label:hover {
+    background: #e1eedb;
+}
+
+.metric-checkboxes input[type="checkbox"] {
+    accent-color: #4a8b2c;
+}
+
+/* 自定义日期选择器 */
+.custom-date-group {
+    background: #f9fbf7 !important;
+    border: 1px dashed #4a8b2c;
+}
+
+.custom-date-group input {
+    border: 1px solid #ccc;
+    padding: 4px;
+    border-radius: 4px;
+    outline: none;
+}
+
+.apply-btn {
+    background: #2b5e2b;
+    color: white;
+    border: none;
+    padding: 4px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.apply-btn:hover {
+    background: #1f3b1a;
+}
