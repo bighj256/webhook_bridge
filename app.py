@@ -308,9 +308,15 @@ def trend_data():
     now = datetime.now()
     if start_str:
         try:
-            # Handle frontend datetime-local format (e.g. 2026-05-22T01:58)
-            start_date = datetime.fromisoformat(start_str.replace('Z', '+00:00'))
-            end_date = datetime.fromisoformat(end_str.replace('Z', '+00:00')) if end_str else now
+            def parse_dt(s):
+                # 将 2026-02-22T02:18 格式化为 2026-02-22 02:18:00
+                s = s.replace('Z', '').split('+')[0].replace('T', ' ').split('.')[0]
+                if len(s) == 16:
+                    s += ':00'
+                return datetime.strptime(s, '%Y-%m-%d %H:%M:%S')
+
+            start_date = parse_dt(start_str)
+            end_date = parse_dt(end_str) if end_str else now
             
             delta = end_date - start_date
             if delta.days > 60:
