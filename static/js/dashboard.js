@@ -182,8 +182,8 @@ async function renderChartFromAPI() {
             alert("请选择开始时间");
             return;
         }
-        url += `&start=${new Date(start).toISOString()}`;
-        if (end) url += `&end=${new Date(end).toISOString()}`;
+        url += `&start=${start}`;
+        if (end) url += `&end=${end}`;
     } else {
         url += `&unit=${timeUnit}`;
     }
@@ -290,8 +290,8 @@ function exportCsv() {
         const start = document.getElementById('customStartDate').value;
         const end = document.getElementById('customEndDate').value;
         if (!start) return alert("请选择开始时间");
-        url += `&start=${new Date(start).toISOString()}`;
-        if (end) url += `&end=${new Date(end).toISOString()}`;
+        url += `&start=${start}`;
+        if (end) url += `&end=${end}`;
     } else {
         const now = new Date();
         let start = new Date();
@@ -300,7 +300,10 @@ function exportCsv() {
         else if (timeUnit === 'week') start.setDate(start.getDate() - 56);
         else if (timeUnit === 'month') start.setFullYear(start.getFullYear() - 1);
         else if (timeUnit === 'year') start.setFullYear(start.getFullYear() - 5);
-        url += `&start=${start.toISOString()}&end=${now.toISOString()}`;
+        
+        // 转换为本地时区的格式 (YYYY-MM-DDTHH:mm:ss)
+        const formatLocal = (d) => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().split('.')[0];
+        url += `&start=${formatLocal(start)}&end=${formatLocal(now)}`;
     }
     
     window.open(url, '_blank');
