@@ -461,9 +461,11 @@ body {
 
 /* ---------- 运行日志面板 ---------- */
 .log-panel-wrapper {
-    background: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(2px);
+    border-radius: 2rem;
+    box-shadow: 0 20px 35px -12px rgba(0, 32, 0, 0.25);
+    border: 1px solid rgba(120, 160, 90, 0.4);
     margin: 1.8rem 0;
     display: flex;
     flex-direction: column;
@@ -549,8 +551,7 @@ body {
 
 .log-terminal {
     background: #111827;
-    border-radius: 8px;
-    padding: 12px;
+    padding: 16px 20px;
     height: 250px;
     overflow-y: auto;
     font-family: 'Consolas', 'Courier New', monospace;
