@@ -23,51 +23,72 @@
         </div>
     </div>
 
-    <!-- 新增：数据聚合统计卡片栏 (今日/近24h) -->
-    <div class="stats-bar" id="statsBar">
-        <div class="stat-item"><span class="stat-label">今日平均温度:</span> <strong class="stat-val" id="statAvgTemp">--</strong></div>
-        <div class="stat-item"><span class="stat-label">今日最高温度:</span> <strong class="stat-val stat-max" id="statMaxTemp">--</strong></div>
-        <div class="stat-item"><span class="stat-label">今日平均空湿:</span> <strong class="stat-val" id="statAvgHum">--</strong></div>
-        <div class="stat-item"><span class="stat-label">今日最高 CO2:</span> <strong class="stat-val stat-max" id="statMaxCo2">--</strong></div>
-        <div class="stat-item"><span class="stat-label">今日最低 pH:</span> <strong class="stat-val stat-min" id="statMinPh">--</strong></div>
-    </div>
-
     <div class="grid">
         <div class="card" data-type="ph">
             <div class="card-header"><div class="icon">🧪</div><h3>土壤 pH 值</h3></div>
             <div class="value-area"><span class="value" id="pHValue">--</span><span class="unit"></span></div>
             <div class="progress-container"><div class="progress-fill" id="pHFill" style="width: 0%;"></div></div>
             <div class="status-row"><span class="status-badge" id="pHStatus">--</span><span class="range-hint">适宜 6.0~7.5</span></div>
+            <div class="daily-stats">
+                <div class="stat-pill"><span class="stat-label">24h均</span><span class="stat-val" id="cardAvgPh">--</span></div>
+                <div class="stat-pill"><span class="stat-label">最高</span><span class="stat-val stat-max" id="cardMaxPh">--</span></div>
+                <div class="stat-pill"><span class="stat-label">最低</span><span class="stat-val stat-min" id="cardMinPh">--</span></div>
+            </div>
         </div>
         <div class="card" data-type="co2">
             <div class="card-header"><div class="icon">💨</div><h3>CO₂ 浓度</h3></div>
             <div class="value-area"><span class="value" id="co2Value">--</span><span class="unit">ppm</span></div>
             <div class="progress-container"><div class="progress-fill" id="co2Fill" style="width: 0%;"></div></div>
             <div class="status-row"><span class="status-badge" id="co2Status">--</span><span class="range-hint">适宜 400~800ppm</span></div>
+            <div class="daily-stats">
+                <div class="stat-pill"><span class="stat-label">24h均</span><span class="stat-val" id="cardAvgCo2">--</span></div>
+                <div class="stat-pill"><span class="stat-label">最高</span><span class="stat-val stat-max" id="cardMaxCo2">--</span></div>
+                <div class="stat-pill"><span class="stat-label">最低</span><span class="stat-val stat-min" id="cardMinCo2">--</span></div>
+            </div>
         </div>
         <div class="card" data-type="soilMoisture">
             <div class="card-header"><div class="icon">💧</div><h3>土壤湿度</h3></div>
             <div class="value-area"><span class="value" id="moistureValue">--</span><span class="unit">%RH</span></div>
             <div class="progress-container"><div class="progress-fill" id="moistureFill" style="width: 0%;"></div></div>
             <div class="status-row"><span class="status-badge" id="moistureStatus">--</span><span class="range-hint">适宜 30%~70%</span></div>
+            <div class="daily-stats">
+                <div class="stat-pill"><span class="stat-label">24h均</span><span class="stat-val" id="cardAvgSoil">--</span></div>
+                <div class="stat-pill"><span class="stat-label">最高</span><span class="stat-val stat-max" id="cardMaxSoil">--</span></div>
+                <div class="stat-pill"><span class="stat-label">最低</span><span class="stat-val stat-min" id="cardMinSoil">--</span></div>
+            </div>
         </div>
         <div class="card" data-type="light">
             <div class="card-header"><div class="icon">☀️</div><h3>光照强度</h3></div>
             <div class="value-area"><span class="value" id="lightValue">--</span><span class="unit">lux</span></div>
             <div class="progress-container"><div class="progress-fill" id="lightFill" style="width: 0%;"></div></div>
             <div class="status-row"><span class="status-badge" id="lightStatus">--</span><span class="range-hint">适宜 2000~10000 lux</span></div>
+            <div class="daily-stats">
+                <div class="stat-pill"><span class="stat-label">24h均</span><span class="stat-val" id="cardAvgLight">--</span></div>
+                <div class="stat-pill"><span class="stat-label">最高</span><span class="stat-val stat-max" id="cardMaxLight">--</span></div>
+                <div class="stat-pill"><span class="stat-label">最低</span><span class="stat-val stat-min" id="cardMinLight">--</span></div>
+            </div>
         </div>
         <div class="card" data-type="airTemp">
             <div class="card-header"><div class="icon">🌡️</div><h3>空气温度</h3></div>
             <div class="value-area"><span class="value" id="airTempValue">--</span><span class="unit">°C</span></div>
             <div class="progress-container"><div class="progress-fill" id="tempFill" style="width: 0%;"></div></div>
             <div class="status-row"><span class="status-badge" id="tempStatus">--</span><span class="range-hint">适宜 18~28°C</span></div>
+            <div class="daily-stats">
+                <div class="stat-pill"><span class="stat-label">24h均</span><span class="stat-val" id="cardAvgTemp">--</span></div>
+                <div class="stat-pill"><span class="stat-label">最高</span><span class="stat-val stat-max" id="cardMaxTemp">--</span></div>
+                <div class="stat-pill"><span class="stat-label">最低</span><span class="stat-val stat-min" id="cardMinTemp">--</span></div>
+            </div>
         </div>
         <div class="card" data-type="airHum">
             <div class="card-header"><div class="icon">🌧️</div><h3>空气湿度</h3></div>
             <div class="value-area"><span class="value" id="airHumValue">--</span><span class="unit">%RH</span></div>
             <div class="progress-container"><div class="progress-fill" id="airHumFill" style="width: 0%;"></div></div>
             <div class="status-row"><span class="status-badge" id="airHumStatus">--</span><span class="range-hint">适宜 45%~75%</span></div>
+            <div class="daily-stats">
+                <div class="stat-pill"><span class="stat-label">24h均</span><span class="stat-val" id="cardAvgHum">--</span></div>
+                <div class="stat-pill"><span class="stat-label">最高</span><span class="stat-val stat-max" id="cardMaxHum">--</span></div>
+                <div class="stat-pill"><span class="stat-label">最低</span><span class="stat-val stat-min" id="cardMinHum">--</span></div>
+            </div>
         </div>
     </div>
     <div class="footer">🌿 数据来自数据库，每5秒自动刷新 | 点击卡片查看趋势</div>

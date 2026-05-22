@@ -87,11 +87,30 @@ async function fetchStats() {
         if (!response.ok) return;
         const data = await response.json();
         if (data.temp) {
-            document.getElementById('statAvgTemp').innerText = `${data.temp.avg}°C`;
-            document.getElementById('statMaxTemp').innerText = `${data.temp.max}°C`;
-            document.getElementById('statAvgHum').innerText = `${data.air_humi.avg}%`;
-            document.getElementById('statMaxCo2').innerText = `${data.co2.max}ppm`;
-            document.getElementById('statMinPh').innerText = `${data.ph.min}`;
+            // pH
+            document.getElementById('cardAvgPh').innerText = data.ph.avg;
+            document.getElementById('cardMaxPh').innerText = data.ph.max;
+            document.getElementById('cardMinPh').innerText = data.ph.min;
+            // CO2
+            document.getElementById('cardAvgCo2').innerText = data.co2.avg;
+            document.getElementById('cardMaxCo2').innerText = data.co2.max;
+            document.getElementById('cardMinCo2').innerText = data.co2.min;
+            // Soil Moisture
+            document.getElementById('cardAvgSoil').innerText = data.soil_humi.avg;
+            document.getElementById('cardMaxSoil').innerText = data.soil_humi.max;
+            document.getElementById('cardMinSoil').innerText = data.soil_humi.min;
+            // Light
+            document.getElementById('cardAvgLight').innerText = data.light.avg;
+            document.getElementById('cardMaxLight').innerText = data.light.max;
+            document.getElementById('cardMinLight').innerText = data.light.min;
+            // Air Temp
+            document.getElementById('cardAvgTemp').innerText = data.temp.avg;
+            document.getElementById('cardMaxTemp').innerText = data.temp.max;
+            document.getElementById('cardMinTemp').innerText = data.temp.min;
+            // Air Hum
+            document.getElementById('cardAvgHum').innerText = data.air_humi.avg;
+            document.getElementById('cardMaxHum').innerText = data.air_humi.max;
+            document.getElementById('cardMinHum').innerText = data.air_humi.min;
         }
     } catch (err) {
         console.error('获取统计数据失败:', err);
@@ -326,6 +345,9 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const data = JSON.parse(event.data);
             updateUI(data);
+            
+            // 收到最新传感数据的同时，触发一次统计数据的刷新
+            fetchStats();
             
             // 如果图表正在显示，流式更新图表
             if (document.getElementById('chartModal').style.display === 'flex' && currentChart) {

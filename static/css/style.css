@@ -259,38 +259,46 @@ body {
     .value { font-size: 2rem; }
 }
 
-/* 统计聚合卡片栏 */
-.stats-bar {
+/* 卡片内嵌统计 (24h) */
+.daily-stats {
     display: flex;
-    justify-content: space-around;
+    justify-content: space-between;
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px dashed rgba(120, 160, 90, 0.3);
+}
+
+.stat-pill {
+    display: flex;
+    flex-direction: column;
     align-items: center;
-    flex-wrap: wrap;
-    background: rgba(255, 255, 255, 0.85);
-    padding: 1rem;
-    border-radius: 1rem;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-    margin-bottom: 1.5rem;
-    gap: 1rem;
-    border: 1px solid rgba(120, 160, 90, 0.3);
+    background: rgba(235, 247, 230, 0.6);
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    flex: 1;
+    margin: 0 4px;
+    border: 1px solid rgba(120, 160, 90, 0.1);
 }
 
-.stat-item {
-    font-size: 0.95rem;
-    color: #2b5e2b;
+.stat-pill:first-child { margin-left: 0; }
+.stat-pill:last-child { margin-right: 0; }
+
+.stat-pill .stat-label {
+    font-size: 0.75rem;
+    color: #5f804d;
+    margin-bottom: 3px;
+    margin-right: 0;
 }
 
-.stat-label {
-    color: #557948;
-    margin-right: 5px;
-}
-
-.stat-val {
+.stat-pill .stat-val {
     font-weight: 700;
-    font-size: 1.1rem;
+    color: #2b5e2b;
+    font-size: 0.95rem;
 }
 
-.stat-max { color: #bc4e2c; }
-.stat-min { color: #235b10; }
+.stat-pill .stat-max { color: #bc4e2c; }
+.stat-pill .stat-min { color: #1a5e30; }
 
 /* 模态框头部按钮组 */
 .modal-header-actions {
