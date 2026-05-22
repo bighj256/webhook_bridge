@@ -436,7 +436,7 @@ document.addEventListener('DOMContentLoaded', () => {
     evtSource.onmessage = function(event) {
         try {
             const data = JSON.parse(event.data);
-            if(typeof addLog === 'function') addLog(`收到传感器数据: 温度 ${data.temp}°C, 湿度 ${data.air_humi}%, 光照 ${data.light}lx...`, 'info');
+            if(typeof addLog === 'function') addLog(`收到传感器数据: 空温 ${data.temp}°C | 空湿 ${data.air_humi}% | 土湿 ${data.soil_humi}% | 光照 ${data.light}lx | CO2 ${data.co2}ppm | pH ${data.ph}`, 'info');
             updateUI(data);
             
             // 收到最新传感数据的同时，触发一次统计数据的刷新
