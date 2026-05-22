@@ -309,6 +309,12 @@ function exportCsv() {
     window.open(url, '_blank');
 }
 
+function exportAllCsv() {
+    const allFields = ['ph', 'co2', 'soil_humi', 'light', 'temp', 'air_humi'];
+    const url = `/api/export?params=${allFields.join(',')}`;
+    window.open(url, '_blank');
+}
+
 // ---------- 注册事件与启动 ----------
 document.addEventListener('DOMContentLoaded', () => {
     fetchLatestAndUpdate();
@@ -349,6 +355,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     setInterval(updateClock, 1000);
     document.getElementById('manualRefreshBtn').addEventListener('click', manualRefresh);
+    document.getElementById('exportAllCsvBtn').addEventListener('click', exportAllCsv);
     updateClock();
 
     // 卡片点击
