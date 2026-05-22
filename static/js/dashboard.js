@@ -511,6 +511,11 @@ document.addEventListener('DOMContentLoaded', () => {
 // ---------- 系统日志面板 ----------
 let systemLogs = [];
 
+document.getElementById('logHeader')?.addEventListener('click', () => {
+    const wrapper = document.querySelector('.log-panel-wrapper');
+    if(wrapper) wrapper.classList.toggle('collapsed');
+});
+
 function addLog(message, level='info') {
     const timeStr = new Date().toLocaleTimeString('zh-CN', {hour12: false});
     const logObj = { time: timeStr, message, level };
@@ -518,6 +523,9 @@ function addLog(message, level='info') {
     
     // 最多保留 1000 条
     if (systemLogs.length > 1000) systemLogs.shift();
+    
+    const countEl = document.getElementById('logCount');
+    if (countEl) countEl.innerText = systemLogs.length;
     
     renderLog(logObj);
 }
@@ -547,6 +555,8 @@ function clearLogs() {
     systemLogs = [];
     const terminal = document.getElementById('logTerminal');
     if (terminal) terminal.innerHTML = '';
+    const countEl = document.getElementById('logCount');
+    if (countEl) countEl.innerText = '0';
     addLog('日志已清空', 'info');
 }
 
