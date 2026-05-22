@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 import time
 import json
 import random
@@ -22,7 +23,7 @@ def generate_mock_data():
 
 def main():
     print(f"[*] 开始向 {MQTT_HOST}:{MQTT_PORT} 发送模拟数据...")
-    print("[*] 目标主题: {MQTT_TOPIC}")
+    print(f"[*] 目标主题: {MQTT_TOPIC}")
     print("[*] 按 Ctrl+C 停止测试\n")
     
     try:
@@ -41,8 +42,8 @@ def main():
             
             print(f"发送: {payload}")
             
-            # 执行命令
-            result = subprocess.run(cmd, capture_output=True, text=True)
+            # 执行命令 (兼容 Python 3.6)
+            result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
             
             if result.returncode != 0:
                 print(f"[!] 发送失败: {result.stderr}")
