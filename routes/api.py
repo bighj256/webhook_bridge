@@ -263,6 +263,31 @@ def trend_data():
     if not fields:
         return jsonify({'error': 'invalid params'}), 400
 
+    if unit == 'live':
+        try:
+            conn = get_db_connection()
+            cur = conn.cursor()
+            sql = f"SELECT time, {', '.join(fields)} FROM sensor_data ORDER BY time DESC LIMIT 60"
+            cur.execute(sql)
+            rows = cur.fetchall()
+            cur.close()
+            conn.close()
+            
+            rows.reverse()
+            labels = []
+            datasets = {f: [] for f in fields}
+            for row in rows:
+                t = row[0]
+                labels.append(t.strftime('%H:%M:%S'))
+                for idx, f in enumerate(fields):
+                    val = row[idx + 1]
+                    datasets[f].append(round(float(val), 2) if val is not None else None)
+            
+            return jsonify({'labels': labels, 'datasets': datasets})
+        except Exception as e:
+            log_error(f"Error in /trend live: {e}")
+            return jsonify({'error': str(e)}), 500
+
     now = datetime.now()
     if start_str:
         try:

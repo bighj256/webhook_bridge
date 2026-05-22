@@ -431,18 +431,21 @@ document.addEventListener('DOMContentLoaded', () => {
             // 收到最新传感数据的同时，触发一次统计数据的刷新
             fetchStats();
             
-            // 如果图表正在显示，流式更新图表
-            if (document.getElementById('chartModal').style.display === 'flex' && currentChart) {
-                const nowStr = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            // 如果图表正在显示，且处于“实时”模式，流式更新图表
+            const timeUnit = document.getElementById('modalTimeUnit').value;
+            if (document.getElementById('chartModal').style.display === 'flex' && currentChart && timeUnit === 'live') {
+                const nowStr = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
                 currentChart.data.labels.push(nowStr);
                 
                 const selectedFields = getSelectedMetrics();
                 selectedFields.forEach((field, index) => {
                     const val = data[field];
-                    currentChart.data.datasets[index].data.push(val);
+                    if(currentChart.data.datasets[index]) {
+                        currentChart.data.datasets[index].data.push(val);
+                    }
                 });
                 
-                if (currentChart.data.labels.length > 100) {
+                if (currentChart.data.labels.length > 60) {
                     currentChart.data.labels.shift();
                     currentChart.data.datasets.forEach(dataset => dataset.data.shift());
                 }
