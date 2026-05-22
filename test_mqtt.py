@@ -12,7 +12,7 @@ MQTT_TOPIC = "farm/sensor/collect"
 def generate_mock_data():
     """生成带有当前时间戳的随机模拟数据"""
     return {
-        "temp": round(random.uniform(18.0, 32.0), 1),
+        "temp": round(random.uniform(18.0, 42.0), 1),
         "air_humi": round(random.uniform(40.0, 75.0), 1),
         "soil_humi": round(random.uniform(30.0, 70.0), 1),
         "light": int(random.uniform(2000, 12000)),

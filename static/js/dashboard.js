@@ -20,64 +20,146 @@ const lightStatus = document.getElementById('lightStatus');
 const tempStatus = document.getElementById('tempStatus');
 const airHumStatus = document.getElementById('airHumStatus');
 
+// ---------- 防刷屏状态记录 ----------
+const previousStates = {
+    ph: 'good', co2: 'good', soilMoisture: 'good',
+    light: 'good', airTemp: 'good', airHum: 'good'
+};
+
+function showToast(title, message, type='alert') {
+    const container = document.getElementById('toastContainer');
+    if(!container) return;
+    
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    
+    const icon = type === 'alert' ? '🔴' : '🟡';
+    
+    toast.innerHTML = `
+        <div class="toast-icon">${icon}</div>
+        <div class="toast-content">
+            <div class="toast-title">${title}</div>
+            <div class="toast-desc">${message}</div>
+        </div>
+    `;
+    
+    container.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.classList.add('hiding');
+        toast.addEventListener('animationend', () => {
+            toast.remove();
+        });
+    }, 4000);
+}
+
+function getStatusDetails(value, metric) {
+    let state = 'good';
+    let text = '';
+    
+    switch(metric) {
+        case 'airTemp':
+            if(value < 10) { state = 'alert'; text = '低温 · 防寒冻'; }
+            else if(value < 18) { state = 'warning'; text = '偏凉 · 注意保温'; }
+            else if(value <= 28) { state = 'good'; text = '舒适 · 生长旺盛'; }
+            else if(value <= 35) { state = 'warning'; text = '偏热 · 适当通风'; }
+            else { state = 'alert'; text = '高温 · 防热害'; }
+            break;
+        case 'airHum':
+            if(value < 30) { state = 'alert'; text = '干燥 · 增湿'; }
+            else if(value < 45) { state = 'warning'; text = '偏干 · 注意'; }
+            else if(value <= 75) { state = 'good'; text = '适宜 · 健康'; }
+            else if(value <= 85) { state = 'warning'; text = '偏湿 · 注意排湿'; }
+            else { state = 'alert'; text = '过湿 · 防病害'; }
+            break;
+        case 'soilMoisture':
+            if(value < 30) { state = 'alert'; text = '干旱 · 立即灌溉'; }
+            else if(value < 40) { state = 'warning'; text = '偏干 · 准备灌溉'; }
+            else if(value <= 70) { state = 'good'; text = '适宜 · 墒情良好'; }
+            else if(value <= 80) { state = 'warning'; text = '偏湿 · 注意'; }
+            else { state = 'alert'; text = '过湿 · 排水防涝'; }
+            break;
+        case 'light':
+            if(value < 2000) { state = 'alert'; text = '光照极低 · 补光'; }
+            else if(value < 3000) { state = 'warning'; text = '光照不足 · 补光'; }
+            else if(value <= 10000) { state = 'good'; text = '光强适宜 · 健康'; }
+            else if(value <= 12000) { state = 'warning'; text = '偏强 · 注意'; }
+            else { state = 'alert'; text = '光强过强 · 遮阴'; }
+            break;
+        case 'co2':
+            if(value < 300) { state = 'alert'; text = '浓度极低 · 光合停滞'; }
+            else if(value < 400) { state = 'warning'; text = '偏低 · 光合减弱'; }
+            else if(value <= 800) { state = 'good'; text = '正常 · 生长佳'; }
+            else if(value <= 1000) { state = 'warning'; text = '偏高 · 注意'; }
+            else { state = 'alert'; text = '过高 · 注意通风'; }
+            break;
+        case 'ph':
+            if(value < 5.5) { state = 'alert'; text = '极酸 · 需改良'; }
+            else if(value < 6.0) { state = 'warning'; text = '偏酸性 · 注意调节'; }
+            else if(value <= 7.5) { state = 'good'; text = '中性 · 适宜'; }
+            else if(value <= 8.0) { state = 'warning'; text = '偏碱性 · 注意调节'; }
+            else { state = 'alert'; text = '极碱 · 需改良'; }
+            break;
+    }
+    return { state, text };
+}
+
+function updateMetricUI(metricName, value, valElem, fillElem, statusElem, percentValue, formatFn) {
+    if (value === undefined || value === null) return;
+    
+    const details = getStatusDetails(value, metricName);
+    const newState = details.state;
+    
+    valElem.innerText = formatFn ? formatFn(value) : value;
+    
+    valElem.classList.remove('text-warning', 'text-alert');
+    fillElem.classList.remove('fill-warning', 'fill-alert');
+    statusElem.classList.remove('status-good', 'status-warning', 'status-alert');
+    
+    if(newState === 'alert') {
+        valElem.classList.add('text-alert');
+        fillElem.classList.add('fill-alert');
+        statusElem.classList.add('status-alert');
+    } else if (newState === 'warning') {
+        valElem.classList.add('text-warning');
+        fillElem.classList.add('fill-warning');
+        statusElem.classList.add('status-warning');
+    } else {
+        statusElem.classList.add('status-good');
+    }
+    
+    fillElem.style.width = `${Math.min(100, Math.max(0, percentValue))}%`;
+    statusElem.innerText = details.text;
+    
+    const oldState = previousStates[metricName];
+    if (newState !== oldState) {
+        if (newState === 'alert' && oldState !== 'alert') {
+            const metricChinese = {
+                'airTemp': '空气温度', 'airHum': '空气湿度', 'soilMoisture': '土壤湿度',
+                'light': '光照强度', 'co2': 'CO2 浓度', 'ph': '土壤 pH 值'
+            }[metricName];
+            showToast(`⚠️ ${metricChinese} 异常警报!`, `当前数值 ${value}，${details.text.split('·')[0].trim()}！`, 'alert');
+        } else if (newState === 'warning' && oldState === 'good') {
+            const metricChinese = {
+                'airTemp': '空气温度', 'airHum': '空气湿度', 'soilMoisture': '土壤湿度',
+                'light': '光照强度', 'co2': 'CO2 浓度', 'ph': '土壤 pH 值'
+            }[metricName];
+            showToast(`⚠️ ${metricChinese} 状态警告`, `当前数值 ${value}，${details.text.split('·')[0].trim()}。`, 'warning');
+        }
+        previousStates[metricName] = newState;
+    }
+}
+
 // ---------- 辅助函数：更新 UI（基于真实数据）----------
 function updateUI(data) {
-    const ph = data.ph;
-    const co2 = data.co2;
-    const soilMoisture = data.soil_humi;
-    const light = data.light;
-    const airTemp = data.temp;
-    const airHum = data.air_humi;
-
-    if(ph !== undefined) pHValueEl.innerText = ph.toFixed(1);
-    if(co2 !== undefined) co2ValueEl.innerText = Math.round(co2);
-    if(soilMoisture !== undefined) moistureValueEl.innerText = Math.round(soilMoisture);
-    if(light !== undefined) lightValueEl.innerText = Math.round(light).toLocaleString();
-    if(airTemp !== undefined) airTempValueEl.innerText = airTemp.toFixed(1);
-    if(airHum !== undefined) airHumValueEl.innerText = Math.round(airHum);
-
-    if(ph !== undefined) {
-        pHFill.style.width = `${Math.min(100, (ph / 14) * 100)}%`;
-        let pHText = ph < 6.0 ? '偏酸性' : (ph <= 7.5 ? '中性 · 适宜' : '偏碱性');
-        pHStatus.innerText = pHText + (ph < 6.0 ? ' · 注意调节' : (ph > 7.5 ? ' · 需改良' : ''));
-        pHStatus.className = `status-badge ${ph < 6.0 || ph > 7.5 ? 'status-warning' : 'status-good'}`;
-    }
-
-    if(co2 !== undefined) {
-        co2Fill.style.width = `${Math.min(100, (co2 / 2000) * 100)}%`;
-        let co2Text = co2 < 400 ? '偏低 · 光合减弱' : (co2 <= 800 ? '正常 · 生长佳' : '偏高 · 注意通风');
-        co2Status.innerText = co2Text;
-        co2Status.className = `status-badge ${co2 < 400 ? 'status-warning' : (co2 > 800 ? 'status-alert' : 'status-good')}`;
-    }
-
-    if(soilMoisture !== undefined) {
-        moistureFill.style.width = `${Math.min(100, Math.max(0, soilMoisture))}%`;
-        let moistText = soilMoisture < 30 ? '干旱 · 立即灌溉' : (soilMoisture <= 70 ? '适宜 · 墒情良好' : '过湿 · 注意排水');
-        moistureStatus.innerText = moistText;
-        moistureStatus.className = `status-badge ${soilMoisture < 30 ? 'status-alert' : (soilMoisture > 70 ? 'status-warning' : 'status-good')}`;
-    }
-
-    if(light !== undefined) {
-        lightFill.style.width = `${Math.min(100, (light / 15000) * 100)}%`;
-        let lightText = light < 2000 ? '光照不足 · 补光' : (light <= 10000 ? '光强适宜 · 健康' : '光强过强 · 遮阴');
-        lightStatus.innerText = lightText;
-        lightStatus.className = `status-badge ${light < 2000 ? 'status-alert' : (light > 10000 ? 'status-warning' : 'status-good')}`;
-    }
-
-    if(airTemp !== undefined) {
-        let tempPercent = ((airTemp + 10) / 55) * 100;
-        tempFill.style.width = `${Math.min(100, Math.max(0, tempPercent))}%`;
-        let tempText = airTemp < 10 ? '低温 · 防寒冻' : (airTemp < 18 ? '偏凉 · 注意保温' : (airTemp <= 28 ? '舒适 · 生长旺盛' : (airTemp <= 35 ? '偏热 · 适当通风' : '高温 · 防热害')));
-        tempStatus.innerText = tempText;
-        tempStatus.className = `status-badge ${airTemp < 10 || airTemp > 35 ? 'status-alert' : (airTemp < 18 || airTemp > 28 ? 'status-warning' : 'status-good')}`;
-    }
-
-    if(airHum !== undefined) {
-        airHumFill.style.width = `${Math.min(100, Math.max(0, airHum))}%`;
-        let humText = airHum < 30 ? '干燥 · 增湿' : (airHum < 45 ? '偏干 · 注意' : (airHum <= 75 ? '适宜 · 健康' : '过高 · 防病害'));
-        airHumStatus.innerText = humText;
-        airHumStatus.className = `status-badge ${airHum < 30 ? 'status-alert' : (airHum > 75 ? 'status-warning' : (airHum < 45 ? 'status-warning' : 'status-good'))}`;
-    }
+    const { temp: airTemp, air_humi: airHum, soil_humi: soilMoisture, light, ph, co2 } = data;
+    
+    updateMetricUI('ph', ph, pHValueEl, pHFill, pHStatus, ph !== undefined ? (ph / 14) * 100 : 0, v => v.toFixed(1));
+    updateMetricUI('co2', co2, co2ValueEl, co2Fill, co2Status, co2 !== undefined ? (co2 / 2000) * 100 : 0, v => Math.round(v));
+    updateMetricUI('soilMoisture', soilMoisture, moistureValueEl, moistureFill, moistureStatus, soilMoisture !== undefined ? soilMoisture : 0, v => Math.round(v));
+    updateMetricUI('light', light, lightValueEl, lightFill, lightStatus, light !== undefined ? (light / 15000) * 100 : 0, v => Math.round(v).toLocaleString());
+    updateMetricUI('airTemp', airTemp, airTempValueEl, tempFill, tempStatus, airTemp !== undefined ? ((airTemp + 10) / 55) * 100 : 0, v => v.toFixed(1));
+    updateMetricUI('airHum', airHum, airHumValueEl, airHumFill, airHumStatus, airHum !== undefined ? airHum : 0, v => Math.round(v));
 }
 
 // ---------- 统计数据 (Stats) ----------
