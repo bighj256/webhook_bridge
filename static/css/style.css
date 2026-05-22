@@ -458,3 +458,85 @@ body {
     from { opacity: 1; transform: translateX(0); }
     to { opacity: 0; transform: translateX(120%); }
 }
+
+/* ---------- 运行日志面板 ---------- */
+.log-panel-wrapper {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    padding: 20px;
+    margin: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.log-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #f3f4f6;
+    padding-bottom: 12px;
+}
+
+.log-panel-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+.log-panel-controls {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.log-panel-controls select {
+    padding: 6px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    outline: none;
+}
+
+.log-btn {
+    padding: 6px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+    background: #3b82f6;
+    color: white;
+    transition: background 0.2s;
+}
+.log-btn:hover { background: #2563eb; }
+.log-btn.log-btn-danger { background: #ef4444; }
+.log-btn.log-btn-danger:hover { background: #dc2626; }
+
+.log-terminal {
+    background: #111827;
+    border-radius: 8px;
+    padding: 12px;
+    height: 250px;
+    overflow-y: auto;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    scroll-behavior: smooth;
+}
+
+.log-entry {
+    margin-bottom: 4px;
+    word-wrap: break-word;
+}
+
+.log-time {
+    color: #9ca3af;
+    margin-right: 8px;
+}
+
+/* Log Levels */
+.log-info { color: #d1d5db; }
+.log-warn { color: #fbbf24; }
+.log-error { color: #f87171; font-weight: bold; }

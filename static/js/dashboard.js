@@ -133,18 +133,19 @@ function updateMetricUI(metricName, value, valElem, fillElem, statusElem, percen
     
     const oldState = previousStates[metricName];
     if (newState !== oldState) {
+        const metricChinese = {
+            'airTemp': '空气温度', 'airHum': '空气湿度', 'soilMoisture': '土壤湿度',
+            'light': '光照强度', 'co2': 'CO2 浓度', 'ph': '土壤 pH 值'
+        }[metricName] || metricName;
+
         if (newState === 'alert' && oldState !== 'alert') {
-            const metricChinese = {
-                'airTemp': '空气温度', 'airHum': '空气湿度', 'soilMoisture': '土壤湿度',
-                'light': '光照强度', 'co2': 'CO2 浓度', 'ph': '土壤 pH 值'
-            }[metricName];
             showToast(`⚠️ ${metricChinese} 异常警报!`, `当前数值 ${value}，${details.text.split('·')[0].trim()}！`, 'alert');
+            if(typeof addLog === 'function') addLog(`[传感器异常] ${metricChinese} 超出危险阈值! 当前数值: ${value}`, 'error');
         } else if (newState === 'warning' && oldState === 'good') {
-            const metricChinese = {
-                'airTemp': '空气温度', 'airHum': '空气湿度', 'soilMoisture': '土壤湿度',
-                'light': '光照强度', 'co2': 'CO2 浓度', 'ph': '土壤 pH 值'
-            }[metricName];
             showToast(`⚠️ ${metricChinese} 状态警告`, `当前数值 ${value}，${details.text.split('·')[0].trim()}。`, 'warning');
+            if(typeof addLog === 'function') addLog(`[传感器警告] ${metricChinese} 偏离适宜范围. 当前数值: ${value}`, 'warn');
+        } else if (newState === 'good' && oldState !== 'good') {
+            if(typeof addLog === 'function') addLog(`[状态恢复] ${metricChinese} 已恢复正常. 当前数值: ${value}`, 'info');
         }
         previousStates[metricName] = newState;
     }
@@ -423,9 +424,19 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // 建立 SSE 长连接，监听服务器推送
     const evtSource = new EventSource('/api/stream');
+    
+    evtSource.onopen = function() {
+        if(typeof addLog === 'function') addLog('已成功连接到服务器实时数据流 (SSE).', 'info');
+    };
+    
+    evtSource.onerror = function() {
+        if(typeof addLog === 'function') addLog('网络连接已断开，正在尝试重新连接...', 'error');
+    };
+
     evtSource.onmessage = function(event) {
         try {
             const data = JSON.parse(event.data);
+            if(typeof addLog === 'function') addLog(`收到传感器数据: 温度 ${data.temp}°C, 湿度 ${data.air_humi}%, 光照 ${data.light}lx...`, 'info');
             updateUI(data);
             
             // 收到最新传感数据的同时，触发一次统计数据的刷新
@@ -497,3 +508,71 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 });
+// ---------- 系统日志面板 ----------
+let systemLogs = [];
+
+function addLog(message, level='info') {
+    const timeStr = new Date().toLocaleTimeString('zh-CN', {hour12: false});
+    const logObj = { time: timeStr, message, level };
+    systemLogs.push(logObj);
+    
+    // 最多保留 1000 条
+    if (systemLogs.length > 1000) systemLogs.shift();
+    
+    renderLog(logObj);
+}
+
+function renderLog(log) {
+    const filter = document.getElementById('logLevelFilter');
+    if (filter && filter.value !== 'all' && filter.value !== log.level) return;
+    
+    const terminal = document.getElementById('logTerminal');
+    if (!terminal) return;
+    
+    const entry = document.createElement('div');
+    entry.className = `log-entry log-${log.level}`;
+    
+    let prefix = '[INFO]  🟢';
+    if (log.level === 'warn') prefix = '[WARN]  🟡';
+    if (log.level === 'error') prefix = '[ERROR] 🔴';
+    
+    entry.innerHTML = `<span class="log-time">[${log.time}]</span> <span class="log-msg">${prefix} ${log.message}</span>`;
+    terminal.appendChild(entry);
+    
+    // 自动滚动到底部
+    terminal.scrollTop = terminal.scrollHeight;
+}
+
+function clearLogs() {
+    systemLogs = [];
+    const terminal = document.getElementById('logTerminal');
+    if (terminal) terminal.innerHTML = '';
+    addLog('日志已清空', 'info');
+}
+
+document.getElementById('logLevelFilter')?.addEventListener('change', () => {
+    const terminal = document.getElementById('logTerminal');
+    if (terminal) terminal.innerHTML = '';
+    systemLogs.forEach(renderLog);
+});
+
+function exportLogs() {
+    if (systemLogs.length === 0) return alert('当前没有日志可导出');
+    let content = "=== Intelligent Farm System Logs ===\n";
+    content += `导出时间: ${new Date().toLocaleString('zh-CN')}\n\n`;
+    
+    systemLogs.forEach(log => {
+        let prefix = '[INFO] ';
+        if (log.level === 'warn') prefix = '[WARN] ';
+        if (log.level === 'error') prefix = '[ERROR]';
+        content += `[${log.time}] ${prefix} ${log.message}\n`;
+    });
+    
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `farm_system_log_${new Date().getTime()}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+}
