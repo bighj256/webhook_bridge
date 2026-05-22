@@ -185,12 +185,12 @@ def get_stats():
             return jsonify({})
             
         stats = {
-            'temp': {'avg': round(row[0], 1), 'max': round(row[1], 1), 'min': round(row[2], 1)},
-            'air_humi': {'avg': round(row[3], 1), 'max': round(row[4], 1), 'min': round(row[5], 1)},
-            'soil_humi': {'avg': round(row[6], 1), 'max': round(row[7], 1), 'min': round(row[8], 1)},
-            'light': {'avg': round(row[9], 1), 'max': round(row[10], 1), 'min': round(row[11], 1)},
-            'ph': {'avg': round(row[12], 1), 'max': round(row[13], 1), 'min': round(row[14], 1)},
-            'co2': {'avg': round(row[15], 1), 'max': round(row[16], 1), 'min': round(row[17], 1)}
+            'temp': {'avg': round(float(row[0]), 1), 'max': round(float(row[1]), 1), 'min': round(float(row[2]), 1)},
+            'air_humi': {'avg': round(float(row[3]), 1), 'max': round(float(row[4]), 1), 'min': round(float(row[5]), 1)},
+            'soil_humi': {'avg': round(float(row[6]), 1), 'max': round(float(row[7]), 1), 'min': round(float(row[8]), 1)},
+            'light': {'avg': round(float(row[9]), 1), 'max': round(float(row[10]), 1), 'min': round(float(row[11]), 1)},
+            'ph': {'avg': round(float(row[12]), 1), 'max': round(float(row[13]), 1), 'min': round(float(row[14]), 1)},
+            'co2': {'avg': round(float(row[15]), 1), 'max': round(float(row[16]), 1), 'min': round(float(row[17]), 1)}
         }
         return jsonify(stats)
     except Exception as e:
