@@ -332,7 +332,7 @@ def trend_data():
         
         sql = f"""
             SELECT
-                DATE_TRUNC('{grain}', time) AS bucket,
+                time_bucket(CAST('1 ' || '{grain}' AS INTERVAL), time) AS bucket,
                 {avg_selects}
             FROM sensor_data
             WHERE time >= %s AND time <= %s
