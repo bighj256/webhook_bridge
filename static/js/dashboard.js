@@ -146,7 +146,8 @@ function updateMetricUI(metricName, value, valElem, fillElem, statusElem, percen
         statusElem.classList.add('status-good');
     }
     
-    fillElem.style.width = `${Math.min(100, Math.max(0, percentValue))}%`;
+    const strokeDashoffset = 263.9 - (263.9 * Math.min(100, Math.max(0, percentValue)) / 100);
+    fillElem.style.strokeDashoffset = strokeDashoffset;
     statusElem.innerText = details.text;
     
     const oldState = previousStates[metricName];

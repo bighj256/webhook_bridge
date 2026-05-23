@@ -264,7 +264,7 @@ body {
     display: flex;
     align-items: center;
     gap: 12px;
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
     border-left: 4px solid var(--sensor-color);
     padding-left: 12px;
 }
@@ -276,28 +276,183 @@ body {
     color: #1f3b25;
 }
 
-.icon {
-    font-size: 1.6rem;
+/* Option B: CSS-Animated SVG Icons */
+.sensor-icon {
+    width: 28px;
+    height: 28px;
+    color: var(--sensor-color);
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: color 0.3s ease;
 }
 
-.value-area {
-    text-align: center;
-    margin: 0.8rem 0;
+/* pH Tube Wave & Bubbles */
+.liquid-fluid {
+    animation: fluidWave 2.5s infinite ease-in-out alternate;
+}
+@keyframes fluidWave {
+    0% { transform: translateY(1.5px); }
+    100% { transform: translateY(-0.5px); }
+}
+.bubble {
+    animation: bubbleUp 1.8s infinite linear;
+    opacity: 0;
+}
+.b-1 { animation-delay: 0s; }
+.b-2 { animation-delay: 0.6s; }
+.b-3 { animation-delay: 1.2s; }
+@keyframes bubbleUp {
+    0% { transform: translateY(4px) scale(0.8); opacity: 0; }
+    50% { opacity: 0.9; }
+    100% { transform: translateY(-6px) scale(1); opacity: 0; }
+}
+
+/* CO2 Wind Lines */
+.wind-line {
+    stroke-dasharray: 18;
+    stroke-dashoffset: 18;
+    animation: windFlow 2.5s infinite linear;
+}
+.w-1 { animation-delay: 0s; }
+.w-2 { animation-delay: 0.7s; }
+.w-3 { animation-delay: 1.4s; }
+@keyframes windFlow {
+    0% { stroke-dashoffset: 18; }
+    50% { stroke-dashoffset: 0; }
+    100% { stroke-dashoffset: -18; }
+}
+
+/* Soil Moisture Droplet Pulse & Ripples */
+.droplet {
+    animation: dropletPulse 2s infinite ease-in-out;
+}
+@keyframes dropletPulse {
+    0%, 100% { transform: scale(1); transform-origin: 12px 15px; }
+    50% { transform: scale(1.08); transform-origin: 12px 15px; }
+}
+.ripple-ring {
+    transform-origin: 12px 22px;
+    animation: rippleSpread 2.2s infinite cubic-bezier(0.1, 0.8, 0.3, 1);
+}
+.r-1 { animation-delay: 0s; }
+.r-2 { animation-delay: 1.1s; }
+@keyframes rippleSpread {
+    0% { transform: scale(0.8); opacity: 0.8; }
+    100% { transform: scale(1.3); opacity: 0; }
+}
+
+/* Sun Core Glow & Ray Rotation */
+.sun-core {
+    animation: sunGlow 2s infinite alternate ease-in-out;
+}
+@keyframes sunGlow {
+    0% { fill: none; transform: scale(1); transform-origin: 12px 12px; }
+    100% { fill: var(--sensor-glow); transform: scale(1.08); transform-origin: 12px 12px; }
+}
+.sun-rays {
+    transform-origin: 12px 12px;
+    animation: rayRotate 24s infinite linear;
+}
+@keyframes rayRotate {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Air Temp Liquid Pulse & Heat waves */
+.temp-liquid {
+    animation: liquidPulse 2.5s infinite ease-in-out alternate;
+}
+@keyframes liquidPulse {
+    0% { transform: scaleY(0.92); transform-origin: 12px 17px; }
+    100% { transform: scaleY(1.04); transform-origin: 12px 17px; }
+}
+.thermal-wave {
+    animation: waveRise 1.8s infinite linear;
+    opacity: 0;
+}
+.t-1 { animation-delay: 0s; }
+.t-2 { animation-delay: 0.9s; }
+@keyframes waveRise {
+    0% { transform: translateY(2px) scaleX(0.8); opacity: 0; }
+    50% { opacity: 0.8; }
+    100% { transform: translateY(-6px) scaleX(1); opacity: 0; }
+}
+
+/* Air Hum Rain Drop Fall */
+.rain-drop {
+    animation: rainFall 1.5s infinite linear;
+    opacity: 0;
+}
+.d-1 { animation-delay: 0s; }
+.d-2 { animation-delay: 0.5s; }
+.d-3 { animation-delay: 1s; }
+@keyframes rainFall {
+    0% { transform: translateY(-3px); opacity: 0; }
+    30% { opacity: 0.8; }
+    100% { transform: translateY(5px); opacity: 0; }
+}
+
+/* Option D: Glassmorphic Gauge Discs */
+.gauge-area {
     display: flex;
-    align-items: baseline;
     justify-content: center;
+    align-items: center;
+    margin: 0.5rem 0;
 }
 
-.value {
+.gauge-container {
+    position: relative;
+    width: 175px;
+    height: 175px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.gauge-svg {
+    width: 100%;
+    height: 100%;
+}
+
+.gauge-track {
+    stroke: rgba(0, 0, 0, 0.04);
+    stroke-width: 6.5px;
+    fill: none;
+}
+
+.gauge-fill {
+    stroke: var(--sensor-color);
+    stroke-width: 6.5px;
+    stroke-linecap: round;
+    fill: none;
+    transform: rotate(-90deg);
+    transform-origin: 50px 50px;
+    stroke-dasharray: 263.9;
+    stroke-dashoffset: 263.9;
+    transition: stroke-dashoffset 0.8s cubic-bezier(0.4, 0, 0.2, 1), stroke 0.3s ease;
+}
+
+.gauge-container .value-area {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.gauge-container .value {
     font-family: 'Outfit', sans-serif;
-    font-size: 3.4rem;
+    font-size: 2.8rem;
     font-weight: 800;
     color: var(--sensor-color);
     line-height: 1;
-    letter-spacing: -1.5px;
+    letter-spacing: -1px;
     transition: color 0.3s ease, transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
@@ -308,53 +463,17 @@ body {
 
 @keyframes pulseHighlight {
     0% { transform: scale(1); }
-    50% { transform: scale(1.12); text-shadow: 0 0 15px var(--sensor-glow); }
+    50% { transform: scale(1.12); }
     100% { transform: scale(1); }
 }
 
-.unit {
+.gauge-container .unit {
     font-family: 'Outfit', sans-serif;
-    font-size: 1.1rem;
-    font-weight: 600;
+    font-size: 0.85rem;
+    font-weight: 700;
     color: #5a7d62;
-    margin-left: 4px;
-}
-
-/* Progress bar */
-.progress-container {
-    background: rgba(0, 0, 0, 0.045);
-    border-radius: 999px;
-    height: 10px;
-    margin: 0.8rem 0;
-    overflow: hidden;
-    position: relative;
-}
-
-.progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--sensor-color) 0%, rgba(255, 255, 255, 0.4) 100%);
-    border-radius: 999px;
-    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-}
-
-/* Shimmer on progress fills */
-.progress-fill::after {
-    content: '';
-    position: absolute;
-    top: 0; right: 0; bottom: 0; left: 0;
-    background: linear-gradient(
-        90deg,
-        rgba(255,255,255,0) 0%,
-        rgba(255,255,255,0.4) 50%,
-        rgba(255,255,255,0) 100%
-    );
-    animation: progressShimmer 2.2s infinite linear;
-}
-
-@keyframes progressShimmer {
-    0% { transform: translateX(-100%); }
-    100% { transform: translateX(100%); }
+    margin-left: 0;
+    margin-top: 2px;
 }
 
 /* Status Indicator Row */
@@ -461,8 +580,8 @@ body {
 /* Warnings Dynamic Classes overridden in JS */
 .text-warning { color: #d97706 !important; }
 .text-alert { color: #dc2626 !important; }
-.fill-warning { background: linear-gradient(90deg, #d97706, rgba(255, 255, 255, 0.3)) !important; }
-.fill-alert { background: linear-gradient(90deg, #dc2626, rgba(255, 255, 255, 0.3)) !important; }
+.fill-warning { stroke: #d97706 !important; filter: drop-shadow(0 0 6px rgba(217, 119, 6, 0.25)); }
+.fill-alert { stroke: #dc2626 !important; filter: drop-shadow(0 0 6px rgba(220, 38, 38, 0.25)); }
 
 /* System Log Panel */
 .log-panel-wrapper {
