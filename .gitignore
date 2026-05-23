@@ -181,3 +181,7 @@ Thumbs.db
 *~
 .*.sw[a-p]
 .sw[a-p]
+
+# Skill files & frontend-design directory
+SKILL.md
+frontend-design/
