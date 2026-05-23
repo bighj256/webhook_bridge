@@ -157,10 +157,10 @@ function updateUI(data) {
     
     updateMetricUI('ph', ph, pHValueEl, pHFill, pHStatus, ph !== undefined ? (ph / 14) * 100 : 0, v => v.toFixed(1));
     updateMetricUI('co2', co2, co2ValueEl, co2Fill, co2Status, co2 !== undefined ? (co2 / 2000) * 100 : 0, v => Math.round(v));
-    updateMetricUI('soilMoisture', soilMoisture, moistureValueEl, moistureFill, moistureStatus, soilMoisture !== undefined ? soilMoisture : 0, v => Math.round(v));
-    updateMetricUI('light', light, lightValueEl, lightFill, lightStatus, light !== undefined ? (light / 15000) * 100 : 0, v => Math.round(v).toLocaleString());
+    updateMetricUI('soilMoisture', soilMoisture, moistureValueEl, moistureFill, moistureStatus, soilMoisture !== undefined ? soilMoisture : 0, v => v.toFixed(1));
+    updateMetricUI('light', light, lightValueEl, lightFill, lightStatus, light !== undefined ? (light / 15000) * 100 : 0, v => v.toFixed(1));
     updateMetricUI('airTemp', airTemp, airTempValueEl, tempFill, tempStatus, airTemp !== undefined ? ((airTemp + 10) / 55) * 100 : 0, v => v.toFixed(1));
-    updateMetricUI('airHum', airHum, airHumValueEl, airHumFill, airHumStatus, airHum !== undefined ? airHum : 0, v => Math.round(v));
+    updateMetricUI('airHum', airHum, airHumValueEl, airHumFill, airHumStatus, airHum !== undefined ? airHum : 0, v => v.toFixed(1));
 }
 
 // ---------- 统计数据 (Stats) ----------
