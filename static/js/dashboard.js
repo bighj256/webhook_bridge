@@ -511,6 +511,24 @@ document.addEventListener('DOMContentLoaded', () => {
 // ---------- 系统日志面板 ----------
 let systemLogs = [];
 
+function saveLogs() {
+    localStorage.setItem('systemLogs', JSON.stringify(systemLogs));
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    try {
+        const saved = localStorage.getItem('systemLogs');
+        if (saved) {
+            systemLogs = JSON.parse(saved);
+            const countEl = document.getElementById('logCount');
+            if (countEl) countEl.innerText = systemLogs.length;
+            systemLogs.forEach(renderLog);
+        }
+    } catch (e) {
+        console.error('加载本地日志失败', e);
+    }
+});
+
 document.getElementById('logHeader')?.addEventListener('click', () => {
     const wrapper = document.querySelector('.log-panel-wrapper');
     if(wrapper) wrapper.classList.toggle('collapsed');
@@ -528,6 +546,7 @@ function addLog(message, level='info') {
     if (countEl) countEl.innerText = systemLogs.length;
     
     renderLog(logObj);
+    saveLogs();
 }
 
 function renderLog(log) {
@@ -557,6 +576,7 @@ function clearLogs() {
     if (terminal) terminal.innerHTML = '';
     const countEl = document.getElementById('logCount');
     if (countEl) countEl.innerText = '0';
+    saveLogs();
     addLog('日志已清空', 'info');
 }
 
