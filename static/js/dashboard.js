@@ -26,6 +26,16 @@ const previousStates = {
     light: 'good', airTemp: 'good', airHum: 'good'
 };
 
+// ---------- 传感器微秒心跳脉冲动效 ----------
+function triggerHeartbeatPulse(element) {
+    if (!element) return;
+    element.classList.remove('pulse-active');
+    // 强制浏览器重绘以重新触发 CSS @keyframes 动画
+    void element.offsetWidth;
+    element.classList.add('pulse-active');
+}
+
+// ---------- 漂亮的 Toast 提示框 ----------
 function showToast(title, message, type='alert') {
     const container = document.getElementById('toastContainer');
     if(!container) return;
@@ -50,9 +60,10 @@ function showToast(title, message, type='alert') {
         toast.addEventListener('animationend', () => {
             toast.remove();
         });
-    }, 4000);
+    }, 4500);
 }
 
+// ---------- 获取数据指标的安全区间状态描述 ----------
 function getStatusDetails(value, metric) {
     let state = 'good';
     let text = '';
@@ -104,13 +115,20 @@ function getStatusDetails(value, metric) {
     return { state, text };
 }
 
+// ---------- 指标 UI 的具体绘制渲染 ----------
 function updateMetricUI(metricName, value, valElem, fillElem, statusElem, percentValue, formatFn) {
     if (value === undefined || value === null) return;
     
     const details = getStatusDetails(value, metricName);
     const newState = details.state;
     
-    valElem.innerText = formatFn ? formatFn(value) : value;
+    // 更新数值并触发呼吸微动效
+    const oldText = valElem.innerText;
+    const newText = formatFn ? formatFn(value) : value;
+    valElem.innerText = newText;
+    if (oldText !== newText && oldText !== '--') {
+        triggerHeartbeatPulse(valElem);
+    }
     
     valElem.classList.remove('text-warning', 'text-alert');
     fillElem.classList.remove('fill-warning', 'fill-alert');
@@ -151,7 +169,7 @@ function updateMetricUI(metricName, value, valElem, fillElem, statusElem, percen
     }
 }
 
-// ---------- 辅助函数：更新 UI（基于真实数据）----------
+// ---------- 辅助函数：更新全界面 UI ----------
 function updateUI(data) {
     const { temp: airTemp, air_humi: airHum, soil_humi: soilMoisture, light, ph, co2 } = data;
     
@@ -163,7 +181,7 @@ function updateUI(data) {
     updateMetricUI('airHum', airHum, airHumValueEl, airHumFill, airHumStatus, airHum !== undefined ? airHum : 0, v => v.toFixed(1));
 }
 
-// ---------- 统计数据 (Stats) ----------
+// ---------- 统计数据看板拉取 ----------
 async function fetchStats() {
     try {
         const response = await fetch('/api/stats');
@@ -200,7 +218,7 @@ async function fetchStats() {
     }
 }
 
-// ---------- 从后端获取最新数据 ----------
+// ---------- 拉取最新监测数据 ----------
 async function fetchLatestAndUpdate() {
     try {
         const response = await fetch('/api/latest');
@@ -219,23 +237,32 @@ async function fetchLatestAndUpdate() {
     }
 }
 
-// ---------- 手动刷新 ----------
+// ---------- 手动一键刷新并触发脉冲 ----------
 function manualRefresh() {
     fetchLatestAndUpdate();
     fetchStats();
+    
+    // 脉冲所有数值显示区域
+    triggerHeartbeatPulse(pHValueEl);
+    triggerHeartbeatPulse(co2ValueEl);
+    triggerHeartbeatPulse(moistureValueEl);
+    triggerHeartbeatPulse(lightValueEl);
+    triggerHeartbeatPulse(airTempValueEl);
+    triggerHeartbeatPulse(airHumValueEl);
+    
     const btn = document.getElementById('manualRefreshBtn');
     const orig = btn.innerHTML;
-    btn.innerHTML = '✅ 已同步数据库';
-    setTimeout(() => btn.innerHTML = orig, 800);
+    btn.innerHTML = '✅ 已成功拉取最新数据';
+    setTimeout(() => btn.innerHTML = orig, 1000);
 }
 
-// ---------- 时钟 ----------
+// ---------- 实时时钟同步 ----------
 function updateClock() {
     const d = new Date();
     document.getElementById('liveClock').innerText = `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;
 }
 
-// ---------- 模态框图表功能 ----------
+// ---------- 模态框 Chart.js 核心美化配置 ----------
 let currentChart = null;
 
 const fieldMapping = {
@@ -246,13 +273,14 @@ const fieldMapping = {
     airTemp: 'temp',
     airHum: 'air_humi'
 };
+
 const paramConfig = {
-    ph: { name: '土壤 pH 值', unit: '', icon: '🧪', yLabel: 'pH值', color: '#4c8b3c' },
-    co2: { name: 'CO₂ 浓度', unit: 'ppm', icon: '💨', yLabel: '浓度 (ppm)', color: '#607d8b' },
-    soil_humi: { name: '土壤湿度', unit: '%', icon: '💧', yLabel: '相对湿度 (%)', color: '#2196f3' },
-    light: { name: '光照强度', unit: 'lux', icon: '☀️', yLabel: '光照 (lux)', color: '#ff9800' },
-    temp: { name: '空气温度', unit: '°C', icon: '🌡️', yLabel: '温度 (°C)', color: '#f44336' },
-    air_humi: { name: '空气湿度', unit: '%', icon: '🌧️', yLabel: '相对湿度 (%)', color: '#03a9f4' }
+    ph: { name: '土壤 pH 值', unit: '', icon: '🧪', yLabel: 'pH值', color: '#9333ea' },
+    co2: { name: 'CO₂ 浓度', unit: 'ppm', icon: '💨', yLabel: '浓度 (ppm)', color: '#10b981' },
+    soil_humi: { name: '土壤湿度', unit: '%', icon: '💧', yLabel: '相对湿度 (%)', color: '#2563eb' },
+    light: { name: '光照强度', unit: 'lux', icon: '☀️', yLabel: '光照 (lux)', color: '#d97706' },
+    temp: { name: '空气温度', unit: '°C', icon: '🌡️', yLabel: '温度 (°C)', color: '#dc2626' },
+    air_humi: { name: '空气湿度', unit: '%', icon: '🌧️', yLabel: '相对湿度 (%)', color: '#0891b2' }
 };
 
 function getSelectedMetrics() {
@@ -260,6 +288,7 @@ function getSelectedMetrics() {
     return Array.from(checkboxes).map(cb => cb.value);
 }
 
+// 核心渲染趋势图表函数
 async function renderChartFromAPI() {
     const canvas = document.getElementById('modalChartCanvas');
     if (!canvas) return;
@@ -304,15 +333,30 @@ async function renderChartFromAPI() {
             const cfg = paramConfig[field];
             const axisId = `y${index === 0 ? '' : '1'}`;
             
+            // 为折线图创建精致的向下淡出渐变填充区
+            let fillBg = cfg.color + '15';
+            if (chartType === 'line') {
+                const gradient = ctx.createLinearGradient(0, 0, 0, 320);
+                gradient.addColorStop(0, cfg.color + '45'); // 顶部更鲜亮
+                gradient.addColorStop(1, cfg.color + '00'); // 底部淡入透明
+                fillBg = gradient;
+            } else {
+                fillBg = cfg.color;
+            }
+            
             datasets.push({
                 label: `${cfg.name} (${cfg.unit})`,
                 data: data.datasets[field],
                 borderColor: cfg.color,
-                backgroundColor: chartType === 'line' ? cfg.color + '33' : cfg.color,
-                borderWidth: 2,
-                tension: 0.3,
+                backgroundColor: fillBg,
+                borderWidth: 2.5,
+                tension: 0.35,
                 fill: chartType === 'line',
                 pointBackgroundColor: cfg.color,
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 1.5,
+                pointRadius: index === 0 ? 3.5 : 4,
+                pointHoverRadius: 6,
                 yAxisID: axisId
             });
 
@@ -320,8 +364,20 @@ async function renderChartFromAPI() {
                 type: 'linear',
                 display: true,
                 position: index === 0 ? 'left' : 'right',
-                title: { display: true, text: cfg.yLabel },
-                grid: { drawOnChartArea: index === 0 } // 只画一次网格
+                title: { 
+                    display: true, 
+                    text: cfg.yLabel,
+                    color: '#3b5c43',
+                    font: { family: "'Plus Jakarta Sans', sans-serif", weight: '700', size: 11 }
+                },
+                ticks: {
+                    color: '#5a7d62',
+                    font: { family: "'Plus Jakarta Sans', sans-serif", size: 10, weight: '600' }
+                },
+                grid: { 
+                    drawOnChartArea: index === 0,
+                    color: 'rgba(0, 0, 0, 0.035)'
+                }
             };
         });
 
@@ -334,8 +390,46 @@ async function renderChartFromAPI() {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { legend: { position: 'top' } },
-                scales: yAxes,
+                plugins: { 
+                    legend: { 
+                        position: 'top',
+                        labels: {
+                            color: '#1f3b25',
+                            font: { family: "'Plus Jakarta Sans', sans-serif", size: 12, weight: '700' },
+                            usePointStyle: true,
+                            pointStyle: 'circle',
+                            padding: 16
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                        titleColor: '#1f3b25',
+                        bodyColor: '#1f3b25',
+                        borderColor: 'rgba(0, 0, 0, 0.06)',
+                        borderWidth: 1,
+                        cornerRadius: 12,
+                        padding: 12,
+                        titleFont: { family: "'Outfit', sans-serif", weight: '700', size: 13 },
+                        bodyFont: { family: "'Plus Jakarta Sans', sans-serif", size: 12, weight: '600' },
+                        boxWidth: 8,
+                        boxHeight: 8,
+                        usePointStyle: true,
+                        shadowColor: 'rgba(74, 94, 79, 0.08)',
+                        shadowBlur: 10
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: {
+                            color: '#5a7d62',
+                            font: { family: "'Plus Jakarta Sans', sans-serif", size: 10, weight: '600' }
+                        },
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.02)'
+                        }
+                    },
+                    ...yAxes
+                },
                 animation: { duration: 0 } // SSE更新时无动画更顺滑
             }
         });
@@ -343,16 +437,17 @@ async function renderChartFromAPI() {
         console.error('加载趋势数据失败:', err);
         if (currentChart) currentChart.destroy();
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.font = '16px sans-serif';
+        ctx.font = '14px sans-serif';
         ctx.fillStyle = 'red';
-        ctx.fillText('无法加载历史数据', 20, 50);
+        ctx.fillText('无法加载历史数据，请检查服务连接', 20, 50);
     }
 }
 
+// ---------- 模态框动作交互 ----------
 async function openModal(dataType) {
     const dbField = fieldMapping[dataType];
     
-    // 初始化 Checkbox
+    // 初始化 Checkbox 选定状态
     const checkboxes = document.querySelectorAll('#metricCheckboxes input[type="checkbox"]');
     checkboxes.forEach(cb => {
         cb.checked = (cb.value === dbField);
@@ -361,7 +456,7 @@ async function openModal(dataType) {
 
     const cfg = paramConfig[dbField];
     document.getElementById('modalIcon').innerText = cfg.icon || '📊';
-    document.getElementById('modalTitle').innerHTML = `历史趋势`;
+    document.getElementById('modalTitle').innerHTML = `历史趋势分析`;
 
     document.getElementById('chartModal').style.display = 'flex';
     await renderChartFromAPI();
@@ -372,6 +467,7 @@ function closeModal() {
     if (currentChart) currentChart.destroy();
 }
 
+// 限制指标最多选取 2 个
 function handleCheckboxLimit() {
     const checkboxes = document.querySelectorAll('#metricCheckboxes input[type="checkbox"]');
     const checkedCount = document.querySelectorAll('#metricCheckboxes input[type="checkbox"]:checked').length;
@@ -417,7 +513,7 @@ function exportAllCsv() {
     window.open(url, '_blank');
 }
 
-// ---------- 注册事件与启动 ----------
+// ---------- 注册事件与 SSE 启动 ----------
 document.addEventListener('DOMContentLoaded', () => {
     fetchLatestAndUpdate();
     fetchStats();
@@ -476,7 +572,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('exportAllCsvBtn').addEventListener('click', exportAllCsv);
     updateClock();
 
-    // 卡片点击
+    // 绑定卡片点击
     document.querySelectorAll('.card').forEach(card => {
         card.addEventListener('click', (e) => {
             const type = card.getAttribute('data-type');
@@ -491,7 +587,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.target === modal) closeModal();
     });
 
-    // UI 控制项改变
+    // UI 控制项改变事件监听
     document.getElementById('modalTimeUnit').addEventListener('change', (e) => {
         document.getElementById('customDateGroup').style.display = e.target.value === 'custom' ? 'flex' : 'none';
         if(e.target.value !== 'custom') renderChartFromAPI();
@@ -508,7 +604,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 });
-// ---------- 系统日志面板 ----------
+
+// ---------- 系统运行日志终端管理 ----------
 let systemLogs = [];
 
 function saveLogs() {
@@ -577,7 +674,7 @@ function clearLogs() {
     const countEl = document.getElementById('logCount');
     if (countEl) countEl.innerText = '0';
     saveLogs();
-    addLog('日志已清空', 'info');
+    addLog('日志终端已重置成功', 'info');
 }
 
 document.getElementById('logLevelFilter')?.addEventListener('change', () => {
@@ -587,8 +684,8 @@ document.getElementById('logLevelFilter')?.addEventListener('change', () => {
 });
 
 function exportLogs() {
-    if (systemLogs.length === 0) return alert('当前没有日志可导出');
-    let content = "=== Intelligent Farm System Logs ===\n";
+    if (systemLogs.length === 0) return alert('当前终端没有可用日志日志可供导出');
+    let content = "=== Intelligent Farm System Console Logs ===\n";
     content += `导出时间: ${new Date().toLocaleString('zh-CN')}\n\n`;
     
     systemLogs.forEach(log => {

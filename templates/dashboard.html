@@ -1,188 +1,303 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>智慧农业监测系统</title>
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <!-- 分离的样式与脚本 -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
+
 <body>
-<div class="dashboard">
-    <div class="header">
-        <div class="title">
-            <span style="color: #000000;">🌾</span> Agri Monitor
-        </div>
-        <div class="sub">智慧农业 · 全环境监测站（点击卡片查看历史趋势）</div>
-        <div class="header-meta">
-            <div class="live-time" id="liveClock">--:--:--</div>
-            <button class="refresh-btn" id="exportAllCsvBtn" style="margin-right: 10px;">📥 导出全部数据</button>
-            <button class="refresh-btn" id="manualRefreshBtn">🔄 一键刷新传感器</button>
-        </div>
+    <!-- Background Sunlit Ambient Glows -->
+    <div class="ambient-glow glow-1"></div>
+    <div class="ambient-glow glow-2"></div>
+    <div class="ambient-glow glow-3"></div>
+
+    <div class="dashboard">
+        <!-- Header Panel -->
+        <header class="header">
+            <div class="header-left">
+                <h1 class="title">
+                    <span>🌾</span> Agri Monitor
+                </h1>
+                <div class="sub">智慧农业 · 全环境监测站</div>
+            </div>
+            <div class="header-meta">
+                <div class="live-time" id="liveClock">--:--:--</div>
+                <button class="refresh-btn" id="exportAllCsvBtn" title="一键导出所有历史环境参数为 CSV">📥 导出全部数据</button>
+                <button class="refresh-btn" id="manualRefreshBtn" title="拉取数据库最新上报数据">🔄 一键刷新传感器</button>
+            </div>
+        </header>
+
+        <!-- Main Cards Grid -->
+        <main class="grid">
+            <!-- pH Card -->
+            <section class="card" data-type="ph" id="phCard">
+                <div class="card-header">
+                    <div class="icon">🧪</div>
+                    <h3>土壤 pH 值</h3>
+                </div>
+                <div class="value-area">
+                    <span class="value" id="pHValue">--</span>
+                    <span class="unit"></span>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-fill" id="pHFill" style="width: 0%;"></div>
+                </div>
+                <div class="status-row">
+                    <span class="status-badge" id="pHStatus">--</span>
+                    <span class="range-hint">适宜 6.0~7.5</span>
+                </div>
+                <div class="daily-stats">
+                    <div class="stat-pill"><span class="stat-label">24h均</span><span class="stat-val"
+                            id="cardAvgPh">--</span></div>
+                    <div class="stat-pill"><span class="stat-label">最高</span><span class="stat-val stat-max"
+                            id="cardMaxPh">--</span></div>
+                    <div class="stat-pill"><span class="stat-label">最低</span><span class="stat-val stat-min"
+                            id="cardMinPh">--</span></div>
+                </div>
+            </section>
+
+            <!-- CO2 Card -->
+            <section class="card" data-type="co2" id="co2Card">
+                <div class="card-header">
+                    <div class="icon">💨</div>
+                    <h3>CO₂ 浓度</h3>
+                </div>
+                <div class="value-area">
+                    <span class="value" id="co2Value">--</span>
+                    <span class="unit">ppm</span>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-fill" id="co2Fill" style="width: 0%;"></div>
+                </div>
+                <div class="status-row">
+                    <span class="status-badge" id="co2Status">--</span>
+                    <span class="range-hint">适宜 400~800ppm</span>
+                </div>
+                <div class="daily-stats">
+                    <div class="stat-pill"><span class="stat-label">24h均</span><span class="stat-val"
+                            id="cardAvgCo2">--</span></div>
+                    <div class="stat-pill"><span class="stat-label">最高</span><span class="stat-val stat-max"
+                            id="cardMaxCo2">--</span></div>
+                    <div class="stat-pill"><span class="stat-label">最低</span><span class="stat-val stat-min"
+                            id="cardMinCo2">--</span></div>
+                </div>
+            </section>
+
+            <!-- Soil Moisture Card -->
+            <section class="card" data-type="soilMoisture" id="soilMoistureCard">
+                <div class="card-header">
+                    <div class="icon">💧</div>
+                    <h3>土壤湿度</h3>
+                </div>
+                <div class="value-area">
+                    <span class="value" id="moistureValue">--</span>
+                    <span class="unit">%RH</span>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-fill" id="moistureFill" style="width: 0%;"></div>
+                </div>
+                <div class="status-row">
+                    <span class="status-badge" id="moistureStatus">--</span>
+                    <span class="range-hint">适宜 30%~70%</span>
+                </div>
+                <div class="daily-stats">
+                    <div class="stat-pill"><span class="stat-label">24h均</span><span class="stat-val"
+                            id="cardAvgSoil">--</span></div>
+                    <div class="stat-pill"><span class="stat-label">最高</span><span class="stat-val stat-max"
+                            id="cardMaxSoil">--</span></div>
+                    <div class="stat-pill"><span class="stat-label">最低</span><span class="stat-val stat-min"
+                            id="cardMinSoil">--</span></div>
+                </div>
+            </section>
+
+            <!-- Light Card -->
+            <section class="card" data-type="light" id="lightCard">
+                <div class="card-header">
+                    <div class="icon">☀️</div>
+                    <h3>光照强度</h3>
+                </div>
+                <div class="value-area">
+                    <span class="value" id="lightValue">--</span>
+                    <span class="unit">lux</span>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-fill" id="lightFill" style="width: 0%;"></div>
+                </div>
+                <div class="status-row">
+                    <span class="status-badge" id="lightStatus">--</span>
+                    <span class="range-hint">适宜 2000~10000 lux</span>
+                </div>
+                <div class="daily-stats">
+                    <div class="stat-pill"><span class="stat-label">24h均</span><span class="stat-val"
+                            id="cardAvgLight">--</span></div>
+                    <div class="stat-pill"><span class="stat-label">最高</span><span class="stat-val stat-max"
+                            id="cardMaxLight">--</span></div>
+                    <div class="stat-pill"><span class="stat-label">最低</span><span class="stat-val stat-min"
+                            id="cardMinLight">--</span></div>
+                </div>
+            </section>
+
+            <!-- Air Temp Card -->
+            <section class="card" data-type="airTemp" id="airTempCard">
+                <div class="card-header">
+                    <div class="icon">🌡️</div>
+                    <h3>空气温度</h3>
+                </div>
+                <div class="value-area">
+                    <span class="value" id="airTempValue">--</span>
+                    <span class="unit">°C</span>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-fill" id="tempFill" style="width: 0%;"></div>
+                </div>
+                <div class="status-row">
+                    <span class="status-badge" id="tempStatus">--</span>
+                    <span class="range-hint">适宜 18~28°C</span>
+                </div>
+                <div class="daily-stats">
+                    <div class="stat-pill"><span class="stat-label">24h均</span><span class="stat-val"
+                            id="cardAvgTemp">--</span></div>
+                    <div class="stat-pill"><span class="stat-label">最高</span><span class="stat-val stat-max"
+                            id="cardMaxTemp">--</span></div>
+                    <div class="stat-pill"><span class="stat-label">最低</span><span class="stat-val stat-min"
+                            id="cardMinTemp">--</span></div>
+                </div>
+            </section>
+
+            <!-- Air Hum Card -->
+            <section class="card" data-type="airHum" id="airHumCard">
+                <div class="card-header">
+                    <div class="icon">🌧️</div>
+                    <h3>空气湿度</h3>
+                </div>
+                <div class="value-area">
+                    <span class="value" id="airHumValue">--</span>
+                    <span class="unit">%RH</span>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-fill" id="airHumFill" style="width: 0%;"></div>
+                </div>
+                <div class="status-row">
+                    <span class="status-badge" id="airHumStatus">--</span>
+                    <span class="range-hint">适宜 45%~75%</span>
+                </div>
+                <div class="daily-stats">
+                    <div class="stat-pill"><span class="stat-label">24h均</span><span class="stat-val"
+                            id="cardAvgHum">--</span></div>
+                    <div class="stat-pill"><span class="stat-label">最高</span><span class="stat-val stat-max"
+                            id="cardMaxHum">--</span></div>
+                    <div class="stat-pill"><span class="stat-label">最低</span><span class="stat-val stat-min"
+                            id="cardMinHum">--</span></div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Command Console Logs Terminal -->
+        <article class="log-panel-wrapper">
+            <div class="log-header" id="logHeader" title="点击展开/折叠控制台面板">
+                <div class="log-header-left">
+                    <span class="log-arrow" id="logArrow">▼</span>
+                    <span>📋</span>
+                    <span>运行日志终端 (System Console)</span>
+                    <span class="log-count pulse" id="logCount" title="当前记录条数">0</span>
+                </div>
+                <div class="log-header-right">
+                    <select id="logLevelFilter" onclick="event.stopPropagation()">
+                        <option value="all">全部级别 (All)</option>
+                        <option value="info">🟢 监测数据 (Info)</option>
+                        <option value="warn">🟡 警告信息 (Warn)</option>
+                        <option value="error">🔴 异常报错 (Error)</option>
+                    </select>
+                    <button class="log-btn" id="exportLogBtn" title="无损导出终端日志流"
+                        onclick="exportLogs(); event.stopPropagation()">📥 导出日志</button>
+                    <button class="log-btn log-btn-danger" id="clearLogBtn" title="清空终端视图"
+                        onclick="clearLogs(); event.stopPropagation()">🗑️ 清空</button>
+                </div>
+            </div>
+            <div class="log-terminal" id="logTerminal">
+                <div class="log-entry log-info"><span class="log-time">[系统初始化]</span> <span
+                        class="log-msg">日志模块已就绪，正在侦听数据流 (SSE)...</span></div>
+            </div>
+        </article>
+
+        <!-- Footer Information -->
+        <footer class="footer-wrapper">
+            <div class="footer">🌿 数据来自数据库，每5秒自动刷新 | 点击卡片查看趋势</div>
+        </footer>
     </div>
 
-    <div class="grid">
-        <div class="card" data-type="ph">
-            <div class="card-header"><div class="icon">🧪</div><h3>土壤 pH 值</h3></div>
-            <div class="value-area"><span class="value" id="pHValue">--</span><span class="unit"></span></div>
-            <div class="progress-container"><div class="progress-fill" id="pHFill" style="width: 0%;"></div></div>
-            <div class="status-row"><span class="status-badge" id="pHStatus">--</span><span class="range-hint">适宜 6.0~7.5</span></div>
-            <div class="daily-stats">
-                <div class="stat-pill"><span class="stat-label">24h均</span><span class="stat-val" id="cardAvgPh">--</span></div>
-                <div class="stat-pill"><span class="stat-label">最高</span><span class="stat-val stat-max" id="cardMaxPh">--</span></div>
-                <div class="stat-pill"><span class="stat-label">最低</span><span class="stat-val stat-min" id="cardMinPh">--</span></div>
+    <!-- Trend Analysis Modal -->
+    <div id="chartModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><span id="modalIcon">📊</span> <span id="modalTitle">历史趋势分析</span></h2>
+                <div class="modal-header-actions">
+                    <button class="export-btn" id="exportCsvBtn" title="导出所选指标的 CSV 数据">📥 导出所选指标</button>
+                    <button class="close-btn" id="closeModalBtn" title="关闭窗口">&times;</button>
+                </div>
             </div>
-        </div>
-        <div class="card" data-type="co2">
-            <div class="card-header"><div class="icon">💨</div><h3>CO₂ 浓度</h3></div>
-            <div class="value-area"><span class="value" id="co2Value">--</span><span class="unit">ppm</span></div>
-            <div class="progress-container"><div class="progress-fill" id="co2Fill" style="width: 0%;"></div></div>
-            <div class="status-row"><span class="status-badge" id="co2Status">--</span><span class="range-hint">适宜 400~800ppm</span></div>
-            <div class="daily-stats">
-                <div class="stat-pill"><span class="stat-label">24h均</span><span class="stat-val" id="cardAvgCo2">--</span></div>
-                <div class="stat-pill"><span class="stat-label">最高</span><span class="stat-val stat-max" id="cardMaxCo2">--</span></div>
-                <div class="stat-pill"><span class="stat-label">最低</span><span class="stat-val stat-min" id="cardMinCo2">--</span></div>
-            </div>
-        </div>
-        <div class="card" data-type="soilMoisture">
-            <div class="card-header"><div class="icon">💧</div><h3>土壤湿度</h3></div>
-            <div class="value-area"><span class="value" id="moistureValue">--</span><span class="unit">%RH</span></div>
-            <div class="progress-container"><div class="progress-fill" id="moistureFill" style="width: 0%;"></div></div>
-            <div class="status-row"><span class="status-badge" id="moistureStatus">--</span><span class="range-hint">适宜 30%~70%</span></div>
-            <div class="daily-stats">
-                <div class="stat-pill"><span class="stat-label">24h均</span><span class="stat-val" id="cardAvgSoil">--</span></div>
-                <div class="stat-pill"><span class="stat-label">最高</span><span class="stat-val stat-max" id="cardMaxSoil">--</span></div>
-                <div class="stat-pill"><span class="stat-label">最低</span><span class="stat-val stat-min" id="cardMinSoil">--</span></div>
-            </div>
-        </div>
-        <div class="card" data-type="light">
-            <div class="card-header"><div class="icon">☀️</div><h3>光照强度</h3></div>
-            <div class="value-area"><span class="value" id="lightValue">--</span><span class="unit">lux</span></div>
-            <div class="progress-container"><div class="progress-fill" id="lightFill" style="width: 0%;"></div></div>
-            <div class="status-row"><span class="status-badge" id="lightStatus">--</span><span class="range-hint">适宜 2000~10000 lux</span></div>
-            <div class="daily-stats">
-                <div class="stat-pill"><span class="stat-label">24h均</span><span class="stat-val" id="cardAvgLight">--</span></div>
-                <div class="stat-pill"><span class="stat-label">最高</span><span class="stat-val stat-max" id="cardMaxLight">--</span></div>
-                <div class="stat-pill"><span class="stat-label">最低</span><span class="stat-val stat-min" id="cardMinLight">--</span></div>
-            </div>
-        </div>
-        <div class="card" data-type="airTemp">
-            <div class="card-header"><div class="icon">🌡️</div><h3>空气温度</h3></div>
-            <div class="value-area"><span class="value" id="airTempValue">--</span><span class="unit">°C</span></div>
-            <div class="progress-container"><div class="progress-fill" id="tempFill" style="width: 0%;"></div></div>
-            <div class="status-row"><span class="status-badge" id="tempStatus">--</span><span class="range-hint">适宜 18~28°C</span></div>
-            <div class="daily-stats">
-                <div class="stat-pill"><span class="stat-label">24h均</span><span class="stat-val" id="cardAvgTemp">--</span></div>
-                <div class="stat-pill"><span class="stat-label">最高</span><span class="stat-val stat-max" id="cardMaxTemp">--</span></div>
-                <div class="stat-pill"><span class="stat-label">最低</span><span class="stat-val stat-min" id="cardMinTemp">--</span></div>
-            </div>
-        </div>
-        <div class="card" data-type="airHum">
-            <div class="card-header"><div class="icon">🌧️</div><h3>空气湿度</h3></div>
-            <div class="value-area"><span class="value" id="airHumValue">--</span><span class="unit">%RH</span></div>
-            <div class="progress-container"><div class="progress-fill" id="airHumFill" style="width: 0%;"></div></div>
-            <div class="status-row"><span class="status-badge" id="airHumStatus">--</span><span class="range-hint">适宜 45%~75%</span></div>
-            <div class="daily-stats">
-                <div class="stat-pill"><span class="stat-label">24h均</span><span class="stat-val" id="cardAvgHum">--</span></div>
-                <div class="stat-pill"><span class="stat-label">最高</span><span class="stat-val stat-max" id="cardMaxHum">--</span></div>
-                <div class="stat-pill"><span class="stat-label">最低</span><span class="stat-val stat-min" id="cardMinHum">--</span></div>
-            </div>
-        </div>
-    </div>
+            <div class="modal-body">
+                <div class="chart-controls">
+                    <!-- Metrics Selector checkboxes -->
+                    <div class="ctrl-group">
+                        <label>📌 监测指标 (最多2个)：</label>
+                        <div class="metric-checkboxes" id="metricCheckboxes">
+                            <label><input type="checkbox" value="ph" data-name="pH值"> pH值</label>
+                            <label><input type="checkbox" value="co2" data-name="CO2"> CO₂浓度</label>
+                            <label><input type="checkbox" value="soil_humi" data-name="土壤湿度"> 土壤湿度</label>
+                            <label><input type="checkbox" value="light" data-name="光照"> 光照强度</label>
+                            <label><input type="checkbox" value="temp" data-name="空气温度"> 空气温度</label>
+                            <label><input type="checkbox" value="air_humi" data-name="空气湿度"> 空气湿度</label>
+                        </div>
+                    </div>
 
-    <!-- 运行日志面板 -->
-    <div class="log-panel-wrapper">
-        <div class="log-header" id="logHeader" title="点击展开/折叠面板">
-            <div class="log-header-left">
-                <span class="log-arrow" id="logArrow">▼</span> <span>📋</span> <span>运行日志</span>
-                <span class="log-count pulse" id="logCount" title="当前记录条数">0</span>
-            </div>
-            <div class="log-header-right">
-                <select id="logLevelFilter" onclick="event.stopPropagation()">
-                    <option value="all">全部级别 (All)</option>
-                    <option value="info">🟢 监测数据 (Info)</option>
-                    <option value="warn">🟡 警告信息 (Warn)</option>
-                    <option value="error">🔴 异常报错 (Error)</option>
-                </select>
-                <button class="log-btn" id="exportLogBtn" title="无损导出日志流" onclick="exportLogs(); event.stopPropagation()">📥 导出日志</button>
-                <button class="log-btn log-btn-danger" id="clearLogBtn" title="清空视图" onclick="clearLogs(); event.stopPropagation()">🗑️ 清空</button>
-            </div>
-        </div>
-        <div class="log-terminal" id="logTerminal">
-            <div class="log-entry log-info"><span class="log-time">[系统初始化]</span> <span class="log-msg">日志模块已就绪，等待连接...</span></div>
-        </div>
-    </div>
+                    <!-- Preset Time Selector -->
+                    <div class="ctrl-group">
+                        <label>📅 时间跨度：</label>
+                        <select id="modalTimeUnit">
+                            <option value="live" selected>实时动态 (近 5 分钟)</option>
+                            <option value="hour">历史快照: 近 24 小时</option>
+                            <option value="day">历史快照: 近 7 天</option>
+                            <option value="week">历史快照: 近 8 周</option>
+                            <option value="month">历史快照: 近 12 个月</option>
+                            <option value="year">历史快照: 近 5 年</option>
+                            <option value="custom">自定义时段...</option>
+                        </select>
+                    </div>
 
-    <div class="footer">🌿 数据来自数据库，每5秒自动刷新 | 点击卡片查看趋势</div>
-</div>
+                    <!-- Custom Range (Hidden by default) -->
+                    <div class="ctrl-group custom-date-group" id="customDateGroup" style="display: none;">
+                        <input type="datetime-local" id="customStartDate">
+                        <span>至</span>
+                        <input type="datetime-local" id="customEndDate">
+                        <button class="apply-btn" id="applyCustomDateBtn">查询</button>
+                    </div>
 
-<!-- 模态框 -->
-<div id="chartModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2><span id="modalIcon">📊</span> <span id="modalTitle">历史趋势</span></h2>
-            <div class="modal-header-actions">
-                <button class="export-btn" id="exportCsvBtn">📥 导出 CSV</button>
-                <button class="close-btn" id="closeModalBtn">&times;</button>
-            </div>
-        </div>
-        <div class="modal-body">
-            <div class="chart-controls">
-                <!-- 指标选择 (多选) -->
-                <div class="ctrl-group">
-                    <label>📌 指标 (最多2个)：</label>
-                    <div class="metric-checkboxes" id="metricCheckboxes">
-                        <label><input type="checkbox" value="ph" data-name="pH值"> pH</label>
-                        <label><input type="checkbox" value="co2" data-name="CO2"> CO2</label>
-                        <label><input type="checkbox" value="soil_humi" data-name="土壤湿度"> 土湿</label>
-                        <label><input type="checkbox" value="light" data-name="光照"> 光照</label>
-                        <label><input type="checkbox" value="temp" data-name="空气温度"> 空温</label>
-                        <label><input type="checkbox" value="air_humi" data-name="空气湿度"> 空湿</label>
+                    <!-- Chart display style -->
+                    <div class="ctrl-group">
+                        <label>📊 展现形式：</label>
+                        <select id="modalChartType">
+                            <option value="line">折线趋势图</option>
+                            <option value="bar">柱状统计图</option>
+                        </select>
                     </div>
                 </div>
-
-                <!-- 时间选择 (预设 or 自定义) -->
-                <div class="ctrl-group">
-                    <label>📅 时段：</label>
-                    <select id="modalTimeUnit">
-                        <option value="live" selected>实时动态 (近 5 分钟)</option>
-                        <option value="hour">历史快照: 近 24 小时</option>
-                        <option value="day">历史快照: 近 7 天</option>
-                        <option value="week">历史快照: 近 8 周</option>
-                        <option value="month">历史快照: 近 12 个月</option>
-                        <option value="year">历史快照: 近 5 年</option>
-                        <option value="custom">自定义时段...</option>
-                    </select>
+                <div class="chart-container">
+                    <canvas id="modalChartCanvas"></canvas>
                 </div>
-
-                <!-- 自定义时间范围 (默认隐藏) -->
-                <div class="ctrl-group custom-date-group" id="customDateGroup" style="display: none;">
-                    <input type="datetime-local" id="customStartDate">
-                    <span>至</span>
-                    <input type="datetime-local" id="customEndDate">
-                    <button class="apply-btn" id="applyCustomDateBtn">查询</button>
-                </div>
-
-                <div class="ctrl-group">
-                    <label>📊 类型：</label>
-                    <select id="modalChartType">
-                        <option value="line">折线图</option>
-                        <option value="bar">柱状图</option>
-                    </select>
-                </div>
-            </div>
-            <div class="chart-container">
-                <canvas id="modalChartCanvas"></canvas>
             </div>
         </div>
-</div>
     </div>
-</div>
-<!-- 弹窗容器 -->
-<div id="toastContainer" class="toast-container"></div>
 
-<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+    <!-- Dynamic Toast Notification Container -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 </body>
+
 </html>
