@@ -1173,8 +1173,8 @@ body {
 .modal-content {
     background: var(--bg-modal);
     border: 1px solid rgba(255, 255, 255, 0.08);
-    width: 100%;
-    max-width: 1000px;
+    width: 95%;
+    max-width: 1400px;
     border-radius: 2rem;
     box-shadow: 0 32px 80px -20px rgba(0, 0, 0, 0.7);
     animation: modalSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -1281,6 +1281,15 @@ body {
     align-items: center;
     flex-wrap: wrap;
     gap: 12px;
+}
+
+.ctrl-row-layout {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2.5rem;
+    border-top: 1px dashed rgba(255, 255, 255, 0.06);
+    padding-top: 1.25rem;
 }
 
 .chart-controls .ctrl-group label,
@@ -1390,7 +1399,7 @@ body {
 
 .chart-container {
     position: relative;
-    height: 380px;
+    height: 550px;
     background: rgba(255, 255, 255, 0.01);
     border-radius: 1.5rem;
     border: 1px solid rgba(255, 255, 255, 0.04);
@@ -1502,6 +1511,12 @@ body {
 
     .chart-container {
         height: 260px;
+    }
+
+    .ctrl-row-layout {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
     }
 }
 
@@ -1760,4 +1775,8 @@ body.light-theme .toast-title {
 
 body.light-theme .toast-desc {
     color: #475569;
+}
+
+body.light-theme .ctrl-row-layout {
+    border-top: 1px dashed #cbd5e1;
 }

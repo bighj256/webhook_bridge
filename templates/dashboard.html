@@ -420,7 +420,6 @@
                 <div class="chart-controls">
                     <!-- Checkboxes for metrics selection -->
                     <div class="ctrl-group">
-                        <span class="control-label" id="checkbox-group-label">📌 监测数据项 (最多勾选 2 个)：</span>
                         <div class="metric-checkboxes" id="metricCheckboxes" role="group"
                             aria-labelledby="checkbox-group-label">
                             <label for="cb-ph">
@@ -446,37 +445,37 @@
                         </div>
                     </div>
 
-                    <!-- Preset timespan select -->
-                    <div class="ctrl-group">
-                        <label for="modalTimeUnit">📅 选择历史时段：</label>
-                        <select id="modalTimeUnit" name="time_unit">
-                            <option value="live" selected>实时动态: 近 5 分钟</option>
-                            <option value="hour">历史快照: 近 24 小时</option>
-                            <option value="day">历史快照: 近 7 天</option>
-                            <option value="week">历史快照: 近 8 周</option>
-                            <option value="month">历史快照: 近 12 个月</option>
-                            <option value="year">历史快照: 近 5 年</option>
-                            <option value="custom">自定义历史区间…</option>
-                        </select>
-                    </div>
+                    <div class="ctrl-row-layout">
+                        <!-- Preset timespan select -->
+                        <div class="ctrl-group">
+                            <select id="modalTimeUnit" name="time_unit">
+                                <option value="live" selected>过去 5 分钟</option>
+                                <option value="hour">过去 24 小时</option>
+                                <option value="day">过去 7 天</option>
+                                <option value="week">过去 8 周</option>
+                                <option value="month">过去 12 个月</option>
+                                <option value="year">过去 5 年</option>
+                                <option value="custom">自定义历史区间…</option>
+                            </select>
+                        </div>
 
-                    <!-- Custom Range (Initially Hidden) -->
-                    <div class="ctrl-group custom-date-group" id="customDateGroup" style="display: none;">
-                        <label for="customStartDate" class="sr-only">开始时间</label>
-                        <input type="datetime-local" id="customStartDate" name="start_date" autocomplete="off">
-                        <span aria-hidden="true">至</span>
-                        <label for="customEndDate" class="sr-only">结束时间</label>
-                        <input type="datetime-local" id="customEndDate" name="end_date" autocomplete="off">
-                        <button class="apply-btn" id="applyCustomDateBtn">确认查询</button>
-                    </div>
+                        <!-- Custom Range (Initially Hidden) -->
+                        <div class="ctrl-group custom-date-group" id="customDateGroup" style="display: none;">
+                            <label for="customStartDate" class="sr-only">开始时间</label>
+                            <input type="datetime-local" id="customStartDate" name="start_date" autocomplete="off">
+                            <span aria-hidden="true">至</span>
+                            <label for="customEndDate" class="sr-only">结束时间</label>
+                            <input type="datetime-local" id="customEndDate" name="end_date" autocomplete="off">
+                            <button class="apply-btn" id="applyCustomDateBtn">确认查询</button>
+                        </div>
 
-                    <!-- Chart presentation style -->
-                    <div class="ctrl-group">
-                        <label for="modalChartType">📊 展现形式：</label>
-                        <select id="modalChartType" name="chart_type">
-                            <option value="line">折线趋势图</option>
-                            <option value="bar">柱状统计图</option>
-                        </select>
+                        <!-- Chart presentation style -->
+                        <div class="ctrl-group">
+                            <select id="modalChartType" name="chart_type">
+                                <option value="line">折线趋势图</option>
+                                <option value="bar">柱状统计图</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
                 <div class="chart-container">
