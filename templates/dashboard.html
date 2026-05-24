@@ -21,7 +21,7 @@
         <header class="header">
             <div class="header-left">
                 <h1 class="title">
-                    <span>🌾</span> Agri Monitor
+                    <span style="color: #ffffff;">🌾</span> Agri Monitor
                 </h1>
                 <div class="sub">智慧农业 · 全环境监测站</div>
             </div>
@@ -39,16 +39,18 @@
                 <div class="card-header">
                     <div class="sensor-icon">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-                            <path d="M9 3h6M10 3v14a4 4 0 0 0 8 0V3M14 3v6" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path class="liquid-fluid" d="M10 12c1 0 1.5 1 2.5 1s1.5-1 2.5-1v5a3 3 0 0 1-5 0z" fill="var(--sensor-color)" opacity="0.35"/>
-                            <circle class="bubble b-1" cx="11" cy="14" r="0.8" fill="var(--sensor-color)"/>
-                            <circle class="bubble b-2" cx="13" cy="10" r="0.6" fill="var(--sensor-color)"/>
-                            <circle class="bubble b-3" cx="12" cy="7" r="0.7" fill="var(--sensor-color)"/>
+                            <path d="M9 3h6M10 3v14a4 4 0 0 0 8 0V3M14 3v6" stroke-linecap="round"
+                                stroke-linejoin="round" />
+                            <path class="liquid-fluid" d="M10 12c1 0 1.5 1 2.5 1s1.5-1 2.5-1v5a3 3 0 0 1-5 0z"
+                                fill="var(--sensor-color)" opacity="0.35" />
+                            <circle class="bubble b-1" cx="11" cy="14" r="0.8" fill="var(--sensor-color)" />
+                            <circle class="bubble b-2" cx="13" cy="10" r="0.6" fill="var(--sensor-color)" />
+                            <circle class="bubble b-3" cx="12" cy="7" r="0.7" fill="var(--sensor-color)" />
                         </svg>
                     </div>
                     <h3>土壤 pH 值</h3>
                 </div>
-                
+
                 <div class="gauge-area">
                     <div class="gauge-container">
                         <svg class="gauge-svg" viewBox="0 0 100 100">
@@ -67,9 +69,12 @@
                     <span class="range-hint">适宜 6.0~7.5</span>
                 </div>
                 <div class="daily-stats">
-                    <div class="stat-pill"><span class="stat-label">24h均</span><span class="stat-val" id="cardAvgPh">--</span></div>
-                    <div class="stat-pill"><span class="stat-label">最高</span><span class="stat-val stat-max" id="cardMaxPh">--</span></div>
-                    <div class="stat-pill"><span class="stat-label">最低</span><span class="stat-val stat-min" id="cardMinPh">--</span></div>
+                    <div class="stat-pill"><span class="stat-label">24h均</span><span class="stat-val"
+                            id="cardAvgPh">--</span></div>
+                    <div class="stat-pill"><span class="stat-label">最高</span><span class="stat-val stat-max"
+                            id="cardMaxPh">--</span></div>
+                    <div class="stat-pill"><span class="stat-label">最低</span><span class="stat-val stat-min"
+                            id="cardMinPh">--</span></div>
                 </div>
             </section>
 
@@ -77,15 +82,16 @@
             <section class="card" data-type="co2" id="co2Card">
                 <div class="card-header">
                     <div class="sensor-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                            <path class="wind-line w-1" d="M2 8h10c1.5 0 2.5-1 2.5-2.5S13.5 3 12 3H10"/>
-                            <path class="wind-line w-2" d="M2 12h14c1.5 0 2.5 1 2.5 2.5S17.5 17 16 17H14"/>
-                            <path class="wind-line w-3" d="M2 16h8"/>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path class="wind-line w-1" d="M2 8h10c1.5 0 2.5-1 2.5-2.5S13.5 3 12 3H10" />
+                            <path class="wind-line w-2" d="M2 12h14c1.5 0 2.5 1 2.5 2.5S17.5 17 16 17H14" />
+                            <path class="wind-line w-3" d="M2 16h8" />
                         </svg>
                     </div>
                     <h3>CO₂ 浓度</h3>
                 </div>
-                
+
                 <div class="gauge-area">
                     <div class="gauge-container">
                         <svg class="gauge-svg" viewBox="0 0 100 100">
@@ -104,9 +110,12 @@
                     <span class="range-hint">适宜 400~800ppm</span>
                 </div>
                 <div class="daily-stats">
-                    <div class="stat-pill"><span class="stat-label">24h均</span><span class="stat-val" id="cardAvgCo2">--</span></div>
-                    <div class="stat-pill"><span class="stat-label">最高</span><span class="stat-val stat-max" id="cardMaxCo2">--</span></div>
-                    <div class="stat-pill"><span class="stat-label">最低</span><span class="stat-val stat-min" id="cardMinCo2">--</span></div>
+                    <div class="stat-pill"><span class="stat-label">24h均</span><span class="stat-val"
+                            id="cardAvgCo2">--</span></div>
+                    <div class="stat-pill"><span class="stat-label">最高</span><span class="stat-val stat-max"
+                            id="cardMaxCo2">--</span></div>
+                    <div class="stat-pill"><span class="stat-label">最低</span><span class="stat-val stat-min"
+                            id="cardMinCo2">--</span></div>
                 </div>
             </section>
 
@@ -114,15 +123,16 @@
             <section class="card" data-type="soilMoisture" id="soilMoistureCard">
                 <div class="card-header">
                     <div class="sensor-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                            stroke-linecap="round" stroke-linejoin="round">
                             <path class="droplet" d="M12 22a7 7 0 0 0 7-7c0-4.3-7-13-7-13S5 10.7 5 15a7 7 0 0 0 7 7z" />
-                            <path class="ripple-ring r-1" d="M12 22a8.5 8.5 0 0 0 8.5-8.5" opacity="0"/>
-                            <path class="ripple-ring r-2" d="M12 22a10 10 0 0 0 10-10" opacity="0"/>
+                            <path class="ripple-ring r-1" d="M12 22a8.5 8.5 0 0 0 8.5-8.5" opacity="0" />
+                            <path class="ripple-ring r-2" d="M12 22a10 10 0 0 0 10-10" opacity="0" />
                         </svg>
                     </div>
                     <h3>土壤湿度</h3>
                 </div>
-                
+
                 <div class="gauge-area">
                     <div class="gauge-container">
                         <svg class="gauge-svg" viewBox="0 0 100 100">
@@ -141,9 +151,12 @@
                     <span class="range-hint">适宜 30%~70%</span>
                 </div>
                 <div class="daily-stats">
-                    <div class="stat-pill"><span class="stat-label">24h均</span><span class="stat-val" id="cardAvgSoil">--</span></div>
-                    <div class="stat-pill"><span class="stat-label">最高</span><span class="stat-val stat-max" id="cardMaxSoil">--</span></div>
-                    <div class="stat-pill"><span class="stat-label">最低</span><span class="stat-val stat-min" id="cardMinSoil">--</span></div>
+                    <div class="stat-pill"><span class="stat-label">24h均</span><span class="stat-val"
+                            id="cardAvgSoil">--</span></div>
+                    <div class="stat-pill"><span class="stat-label">最高</span><span class="stat-val stat-max"
+                            id="cardMaxSoil">--</span></div>
+                    <div class="stat-pill"><span class="stat-label">最低</span><span class="stat-val stat-min"
+                            id="cardMinSoil">--</span></div>
                 </div>
             </section>
 
@@ -151,23 +164,24 @@
             <section class="card" data-type="light" id="lightCard">
                 <div class="card-header">
                     <div class="sensor-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle class="sun-core" cx="12" cy="12" r="5"/>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <circle class="sun-core" cx="12" cy="12" r="5" />
                             <g class="sun-rays">
-                                <line x1="12" y1="1" x2="12" y2="3"/>
-                                <line x1="12" y1="21" x2="12" y2="23"/>
-                                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-                                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-                                <line x1="1" y1="12" x2="3" y2="12"/>
-                                <line x1="21" y1="12" x2="23" y2="12"/>
-                                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-                                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                                <line x1="12" y1="1" x2="12" y2="3" />
+                                <line x1="12" y1="21" x2="12" y2="23" />
+                                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                                <line x1="1" y1="12" x2="3" y2="12" />
+                                <line x1="21" y1="12" x2="23" y2="12" />
+                                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
                             </g>
                         </svg>
                     </div>
                     <h3>光照强度</h3>
                 </div>
-                
+
                 <div class="gauge-area">
                     <div class="gauge-container">
                         <svg class="gauge-svg" viewBox="0 0 100 100">
@@ -186,9 +200,12 @@
                     <span class="range-hint">适宜 2000~10000 lux</span>
                 </div>
                 <div class="daily-stats">
-                    <div class="stat-pill"><span class="stat-label">24h均</span><span class="stat-val" id="cardAvgLight">--</span></div>
-                    <div class="stat-pill"><span class="stat-label">最高</span><span class="stat-val stat-max" id="cardMaxLight">--</span></div>
-                    <div class="stat-pill"><span class="stat-label">最低</span><span class="stat-val stat-min" id="cardMinLight">--</span></div>
+                    <div class="stat-pill"><span class="stat-label">24h均</span><span class="stat-val"
+                            id="cardAvgLight">--</span></div>
+                    <div class="stat-pill"><span class="stat-label">最高</span><span class="stat-val stat-max"
+                            id="cardMaxLight">--</span></div>
+                    <div class="stat-pill"><span class="stat-label">最低</span><span class="stat-val stat-min"
+                            id="cardMinLight">--</span></div>
                 </div>
             </section>
 
@@ -196,16 +213,18 @@
             <section class="card" data-type="airTemp" id="airTempCard">
                 <div class="card-header">
                     <div class="sensor-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/>
-                            <path class="temp-liquid" d="M11 12.5v2.26a2.5 2.5 0 1 0 2 0v-2.26" fill="var(--sensor-color)" opacity="0.6"/>
-                            <path class="thermal-wave t-1" d="M17 5c0 0 .5-1 1-1s1 1 1 1 .5-1 1-1" stroke-width="1.5"/>
-                            <path class="thermal-wave t-2" d="M17 9c0 0 .5-1 1-1s1 1 1 1 .5-1 1-1" stroke-width="1.5"/>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z" />
+                            <path class="temp-liquid" d="M11 12.5v2.26a2.5 2.5 0 1 0 2 0v-2.26"
+                                fill="var(--sensor-color)" opacity="0.6" />
+                            <path class="thermal-wave t-1" d="M17 5c0 0 .5-1 1-1s1 1 1 1 .5-1 1-1" stroke-width="1.5" />
+                            <path class="thermal-wave t-2" d="M17 9c0 0 .5-1 1-1s1 1 1 1 .5-1 1-1" stroke-width="1.5" />
                         </svg>
                     </div>
                     <h3>空气温度</h3>
                 </div>
-                
+
                 <div class="gauge-area">
                     <div class="gauge-container">
                         <svg class="gauge-svg" viewBox="0 0 100 100">
@@ -224,9 +243,12 @@
                     <span class="range-hint">适宜 18~28°C</span>
                 </div>
                 <div class="daily-stats">
-                    <div class="stat-pill"><span class="stat-label">24h均</span><span class="stat-val" id="cardAvgTemp">--</span></div>
-                    <div class="stat-pill"><span class="stat-label">最高</span><span class="stat-val stat-max" id="cardMaxTemp">--</span></div>
-                    <div class="stat-pill"><span class="stat-label">最低</span><span class="stat-val stat-min" id="cardMinTemp">--</span></div>
+                    <div class="stat-pill"><span class="stat-label">24h均</span><span class="stat-val"
+                            id="cardAvgTemp">--</span></div>
+                    <div class="stat-pill"><span class="stat-label">最高</span><span class="stat-val stat-max"
+                            id="cardMaxTemp">--</span></div>
+                    <div class="stat-pill"><span class="stat-label">最低</span><span class="stat-val stat-min"
+                            id="cardMinTemp">--</span></div>
                 </div>
             </section>
 
@@ -234,16 +256,18 @@
             <section class="card" data-type="airHum" id="airHumCard">
                 <div class="card-header">
                     <div class="sensor-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M18 10h-.01c.01-.16.01-.32.01-.48a5.5 5.5 0 0 0-10.32-2.58A5 5 0 0 0 4 11.5a5 5 0 0 0 5 5h9a4.5 4.5 0 0 0 0-9z"/>
-                            <line class="rain-drop d-1" x1="8" y1="18" x2="8" y2="20" stroke-width="1.5"/>
-                            <line class="rain-drop d-2" x1="12" y1="18" x2="12" y2="20" stroke-width="1.5"/>
-                            <line class="rain-drop d-3" x1="16" y1="18" x2="16" y2="20" stroke-width="1.5"/>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path
+                                d="M18 10h-.01c.01-.16.01-.32.01-.48a5.5 5.5 0 0 0-10.32-2.58A5 5 0 0 0 4 11.5a5 5 0 0 0 5 5h9a4.5 4.5 0 0 0 0-9z" />
+                            <line class="rain-drop d-1" x1="8" y1="18" x2="8" y2="20" stroke-width="1.5" />
+                            <line class="rain-drop d-2" x1="12" y1="18" x2="12" y2="20" stroke-width="1.5" />
+                            <line class="rain-drop d-3" x1="16" y1="18" x2="16" y2="20" stroke-width="1.5" />
                         </svg>
                     </div>
                     <h3>空气湿度</h3>
                 </div>
-                
+
                 <div class="gauge-area">
                     <div class="gauge-container">
                         <svg class="gauge-svg" viewBox="0 0 100 100">
@@ -262,9 +286,12 @@
                     <span class="range-hint">适宜 45%~75%</span>
                 </div>
                 <div class="daily-stats">
-                    <div class="stat-pill"><span class="stat-label">24h均</span><span class="stat-val" id="cardAvgHum">--</span></div>
-                    <div class="stat-pill"><span class="stat-label">最高</span><span class="stat-val stat-max" id="cardMaxHum">--</span></div>
-                    <div class="stat-pill"><span class="stat-label">最低</span><span class="stat-val stat-min" id="cardMinHum">--</span></div>
+                    <div class="stat-pill"><span class="stat-label">24h均</span><span class="stat-val"
+                            id="cardAvgHum">--</span></div>
+                    <div class="stat-pill"><span class="stat-label">最高</span><span class="stat-val stat-max"
+                            id="cardMaxHum">--</span></div>
+                    <div class="stat-pill"><span class="stat-label">最低</span><span class="stat-val stat-min"
+                            id="cardMinHum">--</span></div>
                 </div>
             </section>
         </main>
