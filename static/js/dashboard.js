@@ -348,7 +348,7 @@ const widescreenCrosshair = {
             return;
         }
 
-        const timeLabel = chart.data.labels[xIndex];
+        const timeLabel = (chart.data.fullLabels && chart.data.fullLabels[xIndex]) ? chart.data.fullLabels[xIndex] : chart.data.labels[xIndex];
         const snappedX = xScale.getPixelForValue(xIndex);
 
         // 2. Draw vertical and horizontal dashed crosshairs
@@ -548,8 +548,8 @@ async function renderChartFromAPI() {
                 pointBackgroundColor: cfg.color,
                 pointBorderColor: '#ffffff',
                 pointBorderWidth: 1.5,
-                pointRadius: index === 0 ? 3.5 : 4,
-                pointHoverRadius: 6,
+                pointRadius: 0,
+                pointHoverRadius: 0,
                 yAxisID: axisId
             });
 
@@ -578,6 +578,7 @@ async function renderChartFromAPI() {
             type: chartType,
             data: {
                 labels: data.labels,
+                fullLabels: data.full_labels,
                 datasets: datasets
             },
             options: {

@@ -317,7 +317,7 @@ def trend_data():
     else:
         intervals = {
             '30m':   (now - timedelta(minutes=30),  '5 seconds', 360),
-            '1h':    (now - timedelta(hours=1),     '1 minute',  60),
+            '1h':    (now - timedelta(hours=1),     '10 seconds', 360),
             '6h':    (now - timedelta(hours=6),     '1 minute',  360),
             '12h':   (now - timedelta(hours=12),    '1 minute',  720),
             'hour':  (now - timedelta(hours=24),    '1 minute',  1440),
@@ -365,6 +365,8 @@ def trend_data():
         def align_timestamp(dt, interval_str):
             if interval_str == '5 seconds':
                 return dt.replace(second=(dt.second // 5) * 5, microsecond=0)
+            elif interval_str == '10 seconds':
+                return dt.replace(second=(dt.second // 10) * 10, microsecond=0)
             elif interval_str == '1 minute':
                 return dt.replace(second=0, microsecond=0)
             elif interval_str == '10 minutes':
@@ -381,6 +383,8 @@ def trend_data():
         # Define step size helper in Python
         if db_interval == '5 seconds':
             step = timedelta(seconds=5)
+        elif db_interval == '10 seconds':
+            step = timedelta(seconds=10)
         elif db_interval == '1 minute':
             step = timedelta(minutes=1)
         elif db_interval == '10 minutes':
@@ -424,13 +428,14 @@ def trend_data():
             padded_rows = [(make_naive(r[0]), *r[1:]) for r in rows if r[0]]
 
         labels = []
+        full_labels = [b[0].strftime('%Y-%m-%d %H:%M:%S') for b in padded_rows]
         datasets = {f: [] for f in fields}
         
         for row in padded_rows:
             bucket = row[0]
-            if unit == '30m':
+            if unit in ['30m', '1h']:
                 labels.append(bucket.strftime('%H:%M:%S'))
-            elif unit in ['1h', '6h', '12h', 'hour']:
+            elif unit in ['6h', '12h', 'hour']:
                 labels.append(bucket.strftime('%H:%M'))
             elif unit == 'day':
                 labels.append(bucket.strftime('%m-%d %H:%M'))
@@ -456,10 +461,11 @@ def trend_data():
         # Slice limit for non-custom queries to avoid overflow
         if not start_str: 
             labels = labels[-limit:]
+            full_labels = full_labels[-limit:]
             for f in fields:
                 datasets[f] = datasets[f][-limit:]
 
-        return jsonify({'labels': labels, 'datasets': datasets})
+        return jsonify({'labels': labels, 'full_labels': full_labels, 'datasets': datasets})
 
     except Exception as e:
         log_error(f"Error in /trend: {e}")
