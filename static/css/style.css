@@ -1173,8 +1173,8 @@ body {
 .modal-content {
     background: var(--bg-modal);
     border: 1px solid rgba(255, 255, 255, 0.08);
-    width: 95%;
-    max-width: 1400px;
+    width: 96%;
+    max-width: 1700px;
     border-radius: 2rem;
     box-shadow: 0 32px 80px -20px rgba(0, 0, 0, 0.7);
     animation: modalSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
