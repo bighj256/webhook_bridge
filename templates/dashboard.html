@@ -7,7 +7,7 @@
     <title>Agri Monitor — 智慧农业监测系统</title>
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=1.2.2">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=1.2.3">
 </head>
 
 <body>
@@ -46,11 +46,25 @@
                     </div>
                 </div>
             </div>
-
             <!-- Digital等宽 Live Clock -->
             <div class="clock-section">
                 <div class="clock-label">当前系统时间 (Local Time)</div>
                 <div class="live-clock" id="liveClock" aria-label="系统实时时钟">--:--:--</div>
+            </div>
+
+            <!-- Performance Smoothness Switch -->
+            <div class="sidebar-status-box performance-box">
+                <div class="status-indicator">
+                    <span aria-hidden="true">⚡</span>
+                    <span class="status-text">系统渲染优化</span>
+                </div>
+                <div class="perf-switch-container">
+                    <span class="perf-label" id="perfLabelText">极速流畅模式</span>
+                    <label class="perf-switch" for="perfModeCheckbox">
+                        <input type="checkbox" id="perfModeCheckbox" aria-label="启用极速流畅模式">
+                        <span class="slider"></span>
+                    </label>
+                </div>
             </div>
 
             <!-- Sidebar Actions HUB -->
@@ -465,7 +479,7 @@
     <!-- Live Toast Area -->
     <div id="toastContainer" class="toast-container" aria-live="polite"></div>
 
-    <script src="{{ url_for('static', filename='js/dashboard.js') }}?v=1.2.2"></script>
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}?v=1.2.3"></script>
 </body>
 
 </html>

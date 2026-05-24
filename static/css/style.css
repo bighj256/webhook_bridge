@@ -1351,3 +1351,139 @@ body {
         height: 260px;
     }
 }
+
+/* ==================== SYSTEM PERFORMANCE OPTIMIZATIONS & TOGGLE ==================== */
+.performance-box {
+    margin-bottom: 2rem;
+    background: rgba(255, 255, 255, 0.01) !important;
+}
+
+.perf-switch-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px dashed rgba(255, 255, 255, 0.06);
+}
+
+.perf-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+}
+
+.perf-switch {
+    position: relative;
+    display: inline-block;
+    width: 42px;
+    height: 22px;
+}
+
+.perf-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.perf-switch .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: rgba(255, 255, 255, 0.08);
+    transition: .3s;
+    border-radius: 34px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.perf-switch .slider:before {
+    position: absolute;
+    content: "";
+    height: 14px;
+    width: 14px;
+    left: 3px;
+    bottom: 3px;
+    background-color: var(--text-secondary);
+    transition: .3s;
+    border-radius: 50%;
+}
+
+.perf-switch input:checked + .slider {
+    background-color: var(--theme-green-glow);
+    border-color: var(--theme-green);
+}
+
+.perf-switch input:checked + .slider:before {
+    transform: translateX(20px);
+    background-color: var(--theme-green);
+    box-shadow: 0 0 6px var(--theme-green);
+}
+
+/* --- Hardware Acceleration Layer Isolation --- */
+.card, .sidebar, .modal, .modal-content, .ambient-glow {
+    will-change: transform;
+    backface-visibility: hidden;
+    perspective: 1000px;
+    transform: translateZ(0);
+}
+
+/* --- Keyframe Optimization: translate3d to avoid GPU layer repaints --- */
+@keyframes floatOrb1 {
+    0% { transform: translate3d(0, 0, 0) scale(1); }
+    100% { transform: translate3d(6vw, 4vh, 0) scale(1.1); }
+}
+@keyframes floatOrb2 {
+    0% { transform: translate3d(0, 0, 0) scale(1); }
+    100% { transform: translate3d(-6vw, -4vh, 0) scale(0.9); }
+}
+@keyframes floatOrb3 {
+    0% { transform: translate3d(0, 0, 0) scale(0.9); }
+    100% { transform: translate3d(4vw, -4vh, 0) scale(1.05); }
+}
+
+/* --- SUPER SMOOTH PERFORMANCE OVERRIDES --- */
+body.perf-mode-active {
+    --bg-base: #020603;
+    --bg-sidebar: #050d08;
+    --bg-card: #08120c;
+}
+
+body.perf-mode-active .ambient-glow {
+    display: none !important; /* Turn off ambient glow completely */
+}
+
+body.perf-mode-active .card,
+body.perf-mode-active .sidebar,
+body.perf-mode-active .modal,
+body.perf-mode-active .modal-content {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
+}
+
+body.perf-mode-active .card::after,
+body.perf-mode-active .card:hover::after {
+    animation: none !important;
+    display: none !important;
+}
+
+body.perf-mode-active .card:hover {
+    transform: translateY(-2px); /* Lower height transformation */
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.6), 0 0 10px var(--sensor-glow) !important;
+}
+
+body.perf-mode-active .bubble,
+body.perf-mode-active .wind-line,
+body.perf-mode-active .droplet,
+body.perf-mode-active .ripple-ring,
+body.perf-mode-active .sun-core,
+body.perf-mode-active .sun-rays,
+body.perf-mode-active .temp-liquid,
+body.perf-mode-active .thermal-wave,
+body.perf-mode-active .rain-drop,
+body.perf-mode-active .liquid-fluid {
+    animation: none !important; /* Stop heavy SVG paths computations */
+    transform: none !important;
+    opacity: 1 !important;
+    stroke-dashoffset: 0 !important;
+}

@@ -642,6 +642,31 @@ document.addEventListener('DOMContentLoaded', () => {
             renderChartFromAPI();
         });
     });
+
+    // ---------- 极速流畅模式切换控制 ----------
+    const perfCheckbox = document.getElementById('perfModeCheckbox');
+    
+    // 初始化极速模式状态
+    const isPerfActive = localStorage.getItem('perfModeActive') === 'true';
+    if (perfCheckbox) {
+        perfCheckbox.checked = isPerfActive;
+        if (isPerfActive) {
+            document.body.classList.add('perf-mode-active');
+        }
+        
+        perfCheckbox.addEventListener('change', (e) => {
+            const active = e.target.checked;
+            if (active) {
+                document.body.classList.add('perf-mode-active');
+                localStorage.setItem('perfModeActive', 'true');
+                showToast("⚡ 极速流畅模式已开启", "已停用 CPU/GPU 高阶渲染与动态特效，帧率已拉满。", "info");
+            } else {
+                document.body.classList.remove('perf-mode-active');
+                localStorage.setItem('perfModeActive', 'false');
+                showToast("✨ 极臻高保真模式已开启", "毛玻璃高斯模糊及微动态特效已完全还原。", "info");
+            }
+        });
+    }
 });
 
 // ---------- 系统运行终端控制逻辑 ----------
