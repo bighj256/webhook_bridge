@@ -668,9 +668,9 @@ document.addEventListener('DOMContentLoaded', () => {
             localStorage.setItem('themeMode', currentLight ? 'light' : 'dark');
 
             if (currentLight) {
-                showToast("☀️ 已切换为浅色模式", "info");
+                showToast("☀️ 已切换为浅色模式");
             } else {
-                showToast("🌙 已切换为深色模式", "info");
+                showToast("🌙 已切换为深色模式");
             }
 
             // 动态刷新历史趋势分析图的网格和标签颜色！
