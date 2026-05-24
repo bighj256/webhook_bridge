@@ -414,6 +414,7 @@ body {
 .gauge-svg {
     width: 100%;
     height: 100%;
+    overflow: visible; /* 允许 SVG 内部图形边缘安全过渡，防止任何渲染裁切 */
 }
 
 .gauge-track {
@@ -581,8 +582,8 @@ body {
 /* Warnings Dynamic Classes overridden in JS */
 .text-warning { color: #d97706 !important; }
 .text-alert { color: #dc2626 !important; }
-.fill-warning { stroke: #d97706 !important; filter: drop-shadow(0 0 6px rgba(217, 119, 6, 0.25)); }
-.fill-alert { stroke: #dc2626 !important; filter: drop-shadow(0 0 6px rgba(220, 38, 38, 0.25)); }
+.fill-warning { stroke: #d97706 !important; }
+.fill-alert { stroke: #dc2626 !important; }
 
 /* System Log Panel */
 .log-panel-wrapper {
