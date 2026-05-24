@@ -276,12 +276,12 @@ const fieldMapping = {
 };
 
 const paramConfig = {
-    ph: { name: '土壤 pH 值', unit: '', icon: '🧪', yLabel: 'pH值', color: '#9333ea' },
-    co2: { name: 'CO₂ 浓度', unit: 'ppm', icon: '💨', yLabel: '浓度 (ppm)', color: '#10b981' },
-    soil_humi: { name: '土壤湿度', unit: '%', icon: '💧', yLabel: '相对湿度 (%)', color: '#2563eb' },
-    light: { name: '光照强度', unit: 'lux', icon: '☀️', yLabel: '光照 (lux)', color: '#d97706' },
-    temp: { name: '空气温度', unit: '°C', icon: '🌡️', yLabel: '温度 (°C)', color: '#dc2626' },
-    air_humi: { name: '空气湿度', unit: '%', icon: '🌧️', yLabel: '相对湿度 (%)', color: '#0891b2' }
+    ph: { name: '土壤 pH 值', unit: '', icon: '🧪', yLabel: 'pH值', color: '#9333ea', suggestedMin: 0, suggestedMax: 14 },
+    co2: { name: 'CO₂ 浓度', unit: 'ppm', icon: '💨', yLabel: '浓度 (ppm)', color: '#10b981', suggestedMin: 0, suggestedMax: 1500 },
+    soil_humi: { name: '土壤湿度', unit: '%', icon: '💧', yLabel: '相对湿度 (%)', color: '#2563eb', suggestedMin: 0, suggestedMax: 100 },
+    light: { name: '光照强度', unit: 'lux', icon: '☀️', yLabel: '光照 (lux)', color: '#d97706', suggestedMin: 0, suggestedMax: 15000 },
+    temp: { name: '空气温度', unit: '°C', icon: '🌡️', yLabel: '温度 (°C)', color: '#dc2626', suggestedMin: 0, suggestedMax: 40 },
+    air_humi: { name: '空气湿度', unit: '%', icon: '🌧️', yLabel: '相对湿度 (%)', color: '#0891b2', suggestedMin: 0, suggestedMax: 100 }
 };
 
 function getSelectedMetrics() {
@@ -365,6 +365,8 @@ async function renderChartFromAPI() {
                 type: 'linear',
                 display: true,
                 position: index === 0 ? 'left' : 'right',
+                suggestedMin: cfg.suggestedMin,
+                suggestedMax: cfg.suggestedMax,
                 title: { 
                     display: true, 
                     text: cfg.yLabel,
@@ -423,7 +425,10 @@ async function renderChartFromAPI() {
                     x: {
                         ticks: {
                             color: '#5a7d62',
-                            font: { family: "'Plus Jakarta Sans', sans-serif", size: 10, weight: '600' }
+                            font: { family: "'Plus Jakarta Sans', sans-serif", size: 10, weight: '600' },
+                            maxTicksLimit: 10, // 限制最大刻度数量，避免文字重叠拥挤
+                            maxRotation: 0,
+                            minRotation: 0
                         },
                         grid: {
                             color: 'rgba(0, 0, 0, 0.02)'
@@ -542,16 +547,43 @@ document.addEventListener('DOMContentLoaded', () => {
             // 如果图表正在显示，且处于“实时”模式，流式更新图表
             const timeUnit = document.getElementById('modalTimeUnit').value;
             if (document.getElementById('chartModal').style.display === 'flex' && currentChart && timeUnit === 'live') {
-                const nowStr = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
-                currentChart.data.labels.push(nowStr);
-                
-                const selectedFields = getSelectedMetrics();
-                selectedFields.forEach((field, index) => {
-                    const val = data[field];
-                    if(currentChart.data.datasets[index]) {
-                        currentChart.data.datasets[index].data.push(val);
+                // 从服务器推送的 ISO 时间字符串中提取 24 小时制的时间，保证与后端 API 格式统一
+                let timeStr = '';
+                if (data.time) {
+                    try {
+                        const sseTime = new Date(data.time);
+                        timeStr = `${String(sseTime.getHours()).padStart(2, '0')}:${String(sseTime.getMinutes()).padStart(2, '0')}:${String(sseTime.getSeconds()).padStart(2, '0')}`;
+                    } catch (e) {
+                        console.error("解析服务器时间失败", e);
                     }
-                });
+                }
+                if (!timeStr) {
+                    const d = new Date();
+                    timeStr = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}:${String(d.getSeconds()).padStart(2, '0')}`;
+                }
+
+                // 检查是否是图表中的最后一个时间点，防止因 SSE 事件和 REST 请求近乎同时发生导致重复画点
+                const lastLabel = currentChart.data.labels[currentChart.data.labels.length - 1];
+                const selectedFields = getSelectedMetrics();
+                
+                if (lastLabel === timeStr) {
+                    // 如果时间戳完全相同，只更新最后一点的值，不新增点
+                    selectedFields.forEach((field, index) => {
+                        const val = data[field];
+                        if (currentChart.data.datasets[index]) {
+                            currentChart.data.datasets[index].data[currentChart.data.datasets[index].data.length - 1] = val;
+                        }
+                    });
+                } else {
+                    // 否则，正常添加新数据点
+                    currentChart.data.labels.push(timeStr);
+                    selectedFields.forEach((field, index) => {
+                        const val = data[field];
+                        if (currentChart.data.datasets[index]) {
+                            currentChart.data.datasets[index].data.push(val);
+                        }
+                    });
+                }
                 
                 if (currentChart.data.labels.length > 60) {
                     currentChart.data.labels.shift();
