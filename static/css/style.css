@@ -5,6 +5,7 @@
     padding: 0;
     box-sizing: border-box;
     font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    -webkit-tap-highlight-color: transparent; /* 消除移动端点击出现蓝色或灰色半透明背景的高亮框，还原原生App质感 */
 }
 
 body {
