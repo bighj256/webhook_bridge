@@ -276,12 +276,12 @@ const fieldMapping = {
 };
 
 const paramConfig = {
-    ph: { name: '土壤 pH 值', unit: '', icon: '🧪', yLabel: 'pH值', color: '#9333ea', suggestedMin: 0, suggestedMax: 14 },
-    co2: { name: 'CO₂ 浓度', unit: 'ppm', icon: '💨', yLabel: '浓度 (ppm)', color: '#10b981', suggestedMin: 0, suggestedMax: 1500 },
-    soil_humi: { name: '土壤湿度', unit: '%', icon: '💧', yLabel: '相对湿度 (%)', color: '#2563eb', suggestedMin: 0, suggestedMax: 100 },
-    light: { name: '光照强度', unit: 'lux', icon: '☀️', yLabel: '光照 (lux)', color: '#d97706', suggestedMin: 0, suggestedMax: 15000 },
-    temp: { name: '空气温度', unit: '°C', icon: '🌡️', yLabel: '温度 (°C)', color: '#dc2626', suggestedMin: 0, suggestedMax: 40 },
-    air_humi: { name: '空气湿度', unit: '%', icon: '🌧️', yLabel: '相对湿度 (%)', color: '#0891b2', suggestedMin: 0, suggestedMax: 100 }
+    ph: { name: '土壤 pH 值', unit: '', icon: '🧪', yLabel: 'pH值', color: '#9333ea' },
+    co2: { name: 'CO₂ 浓度', unit: 'ppm', icon: '💨', yLabel: '浓度 (ppm)', color: '#10b981' },
+    soil_humi: { name: '土壤湿度', unit: '%', icon: '💧', yLabel: '相对湿度 (%)', color: '#2563eb' },
+    light: { name: '光照强度', unit: 'lux', icon: '☀️', yLabel: '光照 (lux)', color: '#d97706' },
+    temp: { name: '空气温度', unit: '°C', icon: '🌡️', yLabel: '温度 (°C)', color: '#dc2626' },
+    air_humi: { name: '空气湿度', unit: '%', icon: '🌧️', yLabel: '相对湿度 (%)', color: '#0891b2' }
 };
 
 function getSelectedMetrics() {
@@ -365,8 +365,6 @@ async function renderChartFromAPI() {
                 type: 'linear',
                 display: true,
                 position: index === 0 ? 'left' : 'right',
-                suggestedMin: cfg.suggestedMin,
-                suggestedMax: cfg.suggestedMax,
                 title: { 
                     display: true, 
                     text: cfg.yLabel,
