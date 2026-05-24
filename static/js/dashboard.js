@@ -20,25 +20,30 @@ const lightStatus = document.getElementById('lightStatus');
 const tempStatus = document.getElementById('tempStatus');
 const airHumStatus = document.getElementById('airHumStatus');
 
-// ---------- 防刷屏状态记录 ----------
+// ---------- 侧边栏与页眉额外 DOM 绑定 ----------
+const systemStatusDot = document.getElementById('systemStatusDot');
+const systemStatusText = document.getElementById('systemStatusText');
+const uploadStatusVal = document.getElementById('uploadStatusVal');
+const glanceErrorCount = document.getElementById('glanceErrorCount');
+
+// ---------- 状态标记防高频刷屏 ----------
 const previousStates = {
     ph: 'good', co2: 'good', soilMoisture: 'good',
     light: 'good', airTemp: 'good', airHum: 'good'
 };
 
-// ---------- 传感器微秒心跳脉冲动效 ----------
+// ---------- 传感器数值跳跃脉冲微动效 ----------
 function triggerHeartbeatPulse(element) {
     if (!element) return;
     element.classList.remove('pulse-active');
-    // 强制浏览器重绘以重新触发 CSS @keyframes 动画
-    void element.offsetWidth;
+    void element.offsetWidth; // 触发强制重绘
     element.classList.add('pulse-active');
 }
 
-// ---------- 漂亮的 Toast 提示框 ----------
+// ---------- 漂亮的非阻塞 Toast 消息框 ----------
 function showToast(title, message, type='alert') {
     const container = document.getElementById('toastContainer');
-    if(!container) return;
+    if (!container) return;
     
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
@@ -48,7 +53,7 @@ function showToast(title, message, type='alert') {
     else if (type === 'warning') icon = '🟡';
     
     toast.innerHTML = `
-        <div class="toast-icon">${icon}</div>
+        <div class="toast-icon" aria-hidden="true">${icon}</div>
         <div class="toast-content">
             <div class="toast-title">${title}</div>
             <div class="toast-desc">${message}</div>
@@ -57,6 +62,7 @@ function showToast(title, message, type='alert') {
     
     container.appendChild(toast);
     
+    // 平滑移除
     setTimeout(() => {
         toast.classList.add('hiding');
         toast.addEventListener('animationend', () => {
@@ -65,7 +71,7 @@ function showToast(title, message, type='alert') {
     }, 4500);
 }
 
-// ---------- 获取数据指标的安全区间状态描述 ----------
+// ---------- 分析传感器区间状态 ----------
 function getStatusDetails(value, metric) {
     let state = 'good';
     let text = '';
@@ -117,14 +123,13 @@ function getStatusDetails(value, metric) {
     return { state, text };
 }
 
-// ---------- 指标 UI 的具体绘制渲染 ----------
+// ---------- UI 数值绘制更新器 ----------
 function updateMetricUI(metricName, value, valElem, fillElem, statusElem, percentValue, formatFn) {
     if (value === undefined || value === null) return;
     
     const details = getStatusDetails(value, metricName);
     const newState = details.state;
     
-    // 更新数值并触发呼吸微动效
     const oldText = valElem.innerText;
     const newText = formatFn ? formatFn(value) : value;
     valElem.innerText = newText;
@@ -136,7 +141,7 @@ function updateMetricUI(metricName, value, valElem, fillElem, statusElem, percen
     fillElem.classList.remove('fill-warning', 'fill-alert');
     statusElem.classList.remove('status-good', 'status-warning', 'status-alert');
     
-    if(newState === 'alert') {
+    if (newState === 'alert') {
         valElem.classList.add('text-alert');
         fillElem.classList.add('fill-alert');
         statusElem.classList.add('status-alert');
@@ -160,19 +165,19 @@ function updateMetricUI(metricName, value, valElem, fillElem, statusElem, percen
         }[metricName] || metricName;
 
         if (newState === 'alert' && oldState !== 'alert') {
-            showToast(`⚠️ ${metricChinese} 异常警报!`, `当前数值 ${value}，${details.text.split('·')[0].trim()}！`, 'alert');
-            if(typeof addLog === 'function') addLog(`[传感器异常] ${metricChinese} 超出危险阈值! 当前数值: ${value}`, 'error');
+            showToast(`⚠️ ${metricChinese} 异常警报!`, `当前监测值 ${value}，${details.text.split('·')[0].trim()}！`, 'alert');
+            addLog(`[异常告警] ${metricChinese} 超出危险区间! 最新数据: ${value}`, 'error');
         } else if (newState === 'warning' && oldState === 'good') {
-            showToast(`⚠️ ${metricChinese} 状态警告`, `当前数值 ${value}，${details.text.split('·')[0].trim()}。`, 'warning');
-            if(typeof addLog === 'function') addLog(`[传感器警告] ${metricChinese} 偏离适宜范围. 当前数值: ${value}`, 'warn');
+            showToast(`⚠️ ${metricChinese} 偏离范围`, `当前监测值 ${value}，${details.text.split('·')[0].trim()}。`, 'warning');
+            addLog(`[环境警告] ${metricChinese} 偏离舒适区间. 最新数据: ${value}`, 'warn');
         } else if (newState === 'good' && oldState !== 'good') {
-            if(typeof addLog === 'function') addLog(`[状态恢复] ${metricChinese} 已恢复正常. 当前数值: ${value}`, 'info');
+            addLog(`[状态恢复] ${metricChinese} 已重新归于舒适区间. 当前数值: ${value}`, 'info');
         }
         previousStates[metricName] = newState;
     }
 }
 
-// ---------- 辅助函数：更新全界面 UI ----------
+// ---------- UI 全局数据装载 ----------
 function updateUI(data) {
     const { temp: airTemp, air_humi: airHum, soil_humi: soilMoisture, light, ph, co2 } = data;
     
@@ -184,7 +189,7 @@ function updateUI(data) {
     updateMetricUI('airHum', airHum, airHumValueEl, airHumFill, airHumStatus, airHum !== undefined ? airHum : 0, v => v.toFixed(1));
 }
 
-// ---------- 统计数据看板拉取 ----------
+// ---------- 拉取全局 24h 统计 ----------
 async function fetchStats() {
     try {
         const response = await fetch('/api/stats');
@@ -217,35 +222,29 @@ async function fetchStats() {
             document.getElementById('cardMinHum').innerText = data.air_humi.min;
         }
     } catch (err) {
-        console.error('获取统计数据失败:', err);
+        console.error('统计加载失败:', err);
     }
 }
 
-// ---------- 拉取最新监测数据 ----------
+// ---------- 拉取单次最新数值 ----------
 async function fetchLatestAndUpdate() {
     try {
         const response = await fetch('/api/latest');
-        if (!response.ok) {
-            console.warn('暂无数据');
-            return;
-        }
+        if (!response.ok) return;
         const data = await response.json();
-        if (data.error) {
-            console.warn(data.error);
-            return;
-        }
+        if (data.error) return;
         updateUI(data);
     } catch (err) {
-        console.error('获取最新数据失败:', err);
+        console.error('拉取最新数值失败:', err);
     }
 }
 
-// ---------- 手动一键刷新并触发脉冲 ----------
+// ---------- 手动一键强拉刷新 ----------
 function manualRefresh() {
     fetchLatestAndUpdate();
     fetchStats();
     
-    // 脉冲所有数值显示区域
+    // 强制触发全部卡片跳跃动画
     triggerHeartbeatPulse(pHValueEl);
     triggerHeartbeatPulse(co2ValueEl);
     triggerHeartbeatPulse(moistureValueEl);
@@ -255,11 +254,11 @@ function manualRefresh() {
     
     const btn = document.getElementById('manualRefreshBtn');
     const orig = btn.innerHTML;
-    btn.innerHTML = '✅ 已成功拉取最新数据';
-    setTimeout(() => btn.innerHTML = orig, 1000);
+    btn.innerHTML = '✅ 已校正最新数据';
+    setTimeout(() => btn.innerHTML = orig, 1200);
 }
 
-// ---------- 实时时钟同步 (采用规范 Intl.DateTimeFormat) ----------
+// ---------- 国际化实时时钟同步 ----------
 const clockFormatter = new Intl.DateTimeFormat('zh-CN', {
     year: 'numeric',
     month: '2-digit',
@@ -275,7 +274,7 @@ function updateClock() {
     document.getElementById('liveClock').innerText = clockFormatter.format(d).replace(/\//g, '/');
 }
 
-// ---------- 模态框 Chart.js 核心配置 ----------
+// ---------- Chart.js 核心图表逻辑 ----------
 let currentChart = null;
 
 const fieldMapping = {
@@ -288,12 +287,12 @@ const fieldMapping = {
 };
 
 const paramConfig = {
-    ph: { name: '土壤 pH 值', unit: '', icon: '🧪', yLabel: 'pH值', color: '#a855f7' },
-    co2: { name: 'CO₂ 浓度', unit: 'ppm', icon: '💨', yLabel: '浓度 (ppm)', color: '#10b981' },
-    soil_humi: { name: '土壤湿度', unit: '%', icon: '💧', yLabel: '相对湿度 (%)', color: '#3b82f6' },
-    light: { name: '光照强度', unit: 'lux', icon: '☀️', yLabel: '光照 (lux)', color: '#f59e0b' },
-    temp: { name: '空气温度', unit: '°C', icon: '🌡️', yLabel: '温度 (°C)', color: '#ef4444' },
-    air_humi: { name: '空气湿度', unit: '%', icon: '🌧️', yLabel: '相对湿度 (%)', color: '#06b6d4' }
+    ph: { name: '土壤 pH 值', unit: '', icon: '🧪', yLabel: 'pH值', color: '#c084fc' },
+    co2: { name: 'CO₂ 浓度', unit: 'ppm', icon: '💨', yLabel: '浓度 (ppm)', color: '#34d399' },
+    soil_humi: { name: '土壤湿度', unit: '%', icon: '💧', yLabel: '相对湿度 (%)', color: '#60a5fa' },
+    light: { name: '光照强度', unit: 'lux', icon: '☀️', yLabel: '光照 (lux)', color: '#fbbf24' },
+    temp: { name: '空气温度', unit: '°C', icon: '🌡️', yLabel: '温度 (°C)', color: '#f87171' },
+    air_humi: { name: '空气湿度', unit: '%', icon: '🌧️', yLabel: '相对湿度 (%)', color: '#22d3ee' }
 };
 
 function getSelectedMetrics() {
@@ -301,7 +300,6 @@ function getSelectedMetrics() {
     return Array.from(checkboxes).map(cb => cb.value);
 }
 
-// 核心渲染趋势图表函数
 async function renderChartFromAPI() {
     const canvas = document.getElementById('modalChartCanvas');
     if (!canvas) return;
@@ -323,7 +321,7 @@ async function renderChartFromAPI() {
         const start = document.getElementById('customStartDate').value;
         const end = document.getElementById('customEndDate').value;
         if (!start) {
-            showToast("⚠️ 输入失效", "请在时间跨度中选择完整的开始时间与日期", "warning");
+            showToast("⚠️ 输入失效", "自定义查询必须选择开始时间与日期", "warning");
             return;
         }
         url += `&start=${start}`;
@@ -334,7 +332,7 @@ async function renderChartFromAPI() {
 
     try {
         const resp = await fetch(url);
-        if (!resp.ok) throw new Error('trend api error');
+        if (!resp.ok) throw new Error('Trend API error');
         const data = await resp.json();
 
         if (currentChart) currentChart.destroy();
@@ -346,12 +344,11 @@ async function renderChartFromAPI() {
             const cfg = paramConfig[field];
             const axisId = `y${index === 0 ? '' : '1'}`;
             
-            // 为折线图创建精致的向下淡出渐变填充区
-            let fillBg = cfg.color + '15';
+            let fillBg = cfg.color + '12';
             if (chartType === 'line') {
                 const gradient = ctx.createLinearGradient(0, 0, 0, 320);
-                gradient.addColorStop(0, cfg.color + '45'); // 顶部更鲜亮
-                gradient.addColorStop(1, cfg.color + '00'); // 底部淡入透明
+                gradient.addColorStop(0, cfg.color + '38');
+                gradient.addColorStop(1, cfg.color + '00');
                 fillBg = gradient;
             } else {
                 fillBg = cfg.color;
@@ -415,7 +412,7 @@ async function renderChartFromAPI() {
                         }
                     },
                     tooltip: {
-                        backgroundColor: 'rgba(15, 32, 22, 0.95)',
+                        backgroundColor: 'rgba(12, 30, 20, 0.95)',
                         titleColor: '#ffffff',
                         bodyColor: '#e2e8f0',
                         borderColor: 'rgba(255, 255, 255, 0.08)',
@@ -446,24 +443,18 @@ async function renderChartFromAPI() {
                     },
                     ...yAxes
                 },
-                animation: { duration: 0 } // SSE更新时无动画更顺滑
+                animation: { duration: 0 }
             }
         });
     } catch (err) {
-        console.error('加载趋势数据失败:', err);
-        if (currentChart) currentChart.destroy();
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.font = '14px sans-serif';
-        ctx.fillStyle = '#ef4444';
-        ctx.fillText('无法加载历史数据，请检查服务连接', 20, 50);
+        console.error('渲染趋势图出错:', err);
     }
 }
 
-// ---------- 模态框动作交互 ----------
+// ---------- 模态框打开与关闭控制 ----------
 async function openModal(dataType) {
     const dbField = fieldMapping[dataType];
     
-    // 初始化 Checkbox 选定状态
     const checkboxes = document.querySelectorAll('#metricCheckboxes input[type="checkbox"]');
     checkboxes.forEach(cb => {
         cb.checked = (cb.value === dbField);
@@ -475,6 +466,7 @@ async function openModal(dataType) {
     document.getElementById('modalTitle').innerHTML = `历史趋势分析`;
 
     document.getElementById('chartModal').style.display = 'flex';
+    document.getElementById('chartModal').focus();
     await renderChartFromAPI();
 }
 
@@ -483,7 +475,6 @@ function closeModal() {
     if (currentChart) currentChart.destroy();
 }
 
-// 限制指标最多选取 2 个
 function handleCheckboxLimit() {
     const checkboxes = document.querySelectorAll('#metricCheckboxes input[type="checkbox"]');
     const checkedCount = document.querySelectorAll('#metricCheckboxes input[type="checkbox"]:checked').length;
@@ -507,7 +498,7 @@ function exportCsv() {
         const start = document.getElementById('customStartDate').value;
         const end = document.getElementById('customEndDate').value;
         if (!start) {
-            showToast("⚠️ 导出失败", "自定义导出时段必须选择开始的日期时间", "warning");
+            showToast("⚠️ 导出失败", "自定义导出区间必须选择开始时间与日期", "warning");
             return;
         }
         url += `&start=${start}`;
@@ -521,11 +512,9 @@ function exportCsv() {
         else if (timeUnit === 'month') start.setFullYear(start.getFullYear() - 1);
         else if (timeUnit === 'year') start.setFullYear(start.getFullYear() - 5);
         
-        // 转换为本地时区的格式 (YYYY-MM-DDTHH:mm:ss)
         const formatLocal = (d) => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().split('.')[0];
         url += `&start=${formatLocal(start)}&end=${formatLocal(now)}`;
     }
-    
     window.open(url, '_blank');
 }
 
@@ -535,29 +524,35 @@ function exportAllCsv() {
     window.open(url, '_blank');
 }
 
-// ---------- 注册事件与 SSE 启动 ----------
+// ---------- SSE 长连接与页面加载初始化 ----------
 document.addEventListener('DOMContentLoaded', () => {
     fetchLatestAndUpdate();
     fetchStats();
     
-    // 建立 SSE 长连接，监听服务器推送
     const evtSource = new EventSource('/api/stream');
     
     evtSource.onopen = function() {
-        if(typeof addLog === 'function') addLog('已成功连接到服务器实时数据流 (SSE)。', 'info');
+        // 更新侧边栏与健康度
+        systemStatusDot.style.background = '#34d399';
+        systemStatusText.innerText = '实时正常监测';
+        uploadStatusVal.innerText = 'SSE Online';
+        addLog('已接入智慧温室数据推流层 (SSE)。', 'info');
     };
     
     evtSource.onerror = function() {
-        if(typeof addLog === 'function') addLog('网络连接已断开，正在尝试重新连接…', 'error');
+        systemStatusDot.style.background = '#f87171';
+        systemStatusText.innerText = '连接已被断开';
+        uploadStatusVal.innerText = 'Reconnecting';
+        addLog('网络断开，正在尝试重组推流连接…', 'error');
     };
 
     evtSource.onmessage = function(event) {
         try {
             const data = JSON.parse(event.data);
-            if(typeof addLog === 'function') addLog(`收到传感器数据: 空温 ${data.temp}°C | 空湿 ${data.air_humi}% | 土湿 ${data.soil_humi}% | 光照 ${data.light}lx | CO2 ${data.co2}ppm | pH ${data.ph}`, 'info');
+            addLog(`STM32上报: 温度 ${data.temp}°C | 湿度 ${data.air_humi}% | 土湿 ${data.soil_humi}% | 光强 ${data.light}lx | CO2 ${data.co2}ppm | pH ${data.ph}`, 'info');
             updateUI(data);
             
-            // 如果图表正在显示，且处于“实时”模式，流式更新图表
+            // 如果处于“实时”且 Modal 展开，流式刷新图表
             const timeUnit = document.getElementById('modalTimeUnit').value;
             if (document.getElementById('chartModal').style.display === 'flex' && currentChart && timeUnit === 'live') {
                 let timeStr = '';
@@ -565,9 +560,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     try {
                         const sseTime = new Date(data.time);
                         timeStr = `${String(sseTime.getHours()).padStart(2, '0')}:${String(sseTime.getMinutes()).padStart(2, '0')}:${String(sseTime.getSeconds()).padStart(2, '0')}`;
-                    } catch (e) {
-                        console.error("解析服务器时间失败", e);
-                    }
+                    } catch (e) {}
                 }
                 if (!timeStr) {
                     const d = new Date();
@@ -598,24 +591,21 @@ document.addEventListener('DOMContentLoaded', () => {
                     currentChart.data.labels.shift();
                     currentChart.data.datasets.forEach(dataset => dataset.data.shift());
                 }
-                
                 currentChart.update();
             }
         } catch(e) {
             console.error("解析 SSE 数据失败", e);
         }
     };
-    evtSource.onerror = function(err) {
-        console.error("SSE 连接出错，浏览器会自动尝试重连…", err);
-    };
 
     setInterval(updateClock, 1000);
     setInterval(fetchStats, 30000);
+    
     document.getElementById('manualRefreshBtn').addEventListener('click', manualRefresh);
     document.getElementById('exportAllCsvBtn').addEventListener('click', exportAllCsv);
     updateClock();
 
-    // 绑定卡片点击与键盘触发，全面增强键盘可访问性
+    // 卡片点击与键盘触发事件绑定
     document.querySelectorAll('.card').forEach(card => {
         const handler = (e) => {
             const type = card.getAttribute('data-type');
@@ -630,17 +620,16 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // 模态框关闭
+    // 模态框关闭控制
     document.getElementById('closeModalBtn').addEventListener('click', closeModal);
     window.addEventListener('click', (e) => {
         const modal = document.getElementById('chartModal');
         if (e.target === modal) closeModal();
     });
 
-    // UI 控制项改变事件监听
     document.getElementById('modalTimeUnit').addEventListener('change', (e) => {
         document.getElementById('customDateGroup').style.display = e.target.value === 'custom' ? 'flex' : 'none';
-        if(e.target.value !== 'custom') renderChartFromAPI();
+        if (e.target.value !== 'custom') renderChartFromAPI();
     });
     
     document.getElementById('modalChartType').addEventListener('change', renderChartFromAPI);
@@ -655,7 +644,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-// ---------- 系统运行日志终端管理 ----------
+// ---------- 系统运行终端控制逻辑 ----------
 let systemLogs = [];
 
 function saveLogs() {
@@ -672,16 +661,16 @@ document.addEventListener('DOMContentLoaded', () => {
             systemLogs.forEach(renderLog);
         }
     } catch (e) {
-        console.error('加载本地日志失败', e);
+        console.error('加载本地运行日志出错', e);
     }
 });
 
-// 日志头部折叠键盘可访问性绑定
+// 绑定日志终端折叠键盘可访问性
 const logHeader = document.getElementById('logHeader');
 if (logHeader) {
     const toggleLogs = () => {
         const wrapper = document.querySelector('.log-panel-wrapper');
-        if(wrapper) wrapper.classList.toggle('collapsed');
+        if (wrapper) wrapper.classList.toggle('collapsed');
     };
     logHeader.addEventListener('click', toggleLogs);
     logHeader.addEventListener('keydown', (e) => {
@@ -692,8 +681,15 @@ if (logHeader) {
     });
 }
 
+const logTimeFormatter = new Intl.DateTimeFormat('zh-CN', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+});
+
 function addLog(message, level='info') {
-    const timeStr = new Date().toLocaleTimeString('zh-CN', {hour12: false});
+    const timeStr = logTimeFormatter.format(new Date());
     const logObj = { time: timeStr, message, level };
     systemLogs.push(logObj);
     
@@ -701,6 +697,10 @@ function addLog(message, level='info') {
     
     const countEl = document.getElementById('logCount');
     if (countEl) countEl.innerText = systemLogs.length;
+    
+    // 更新顶栏告警数
+    const errCount = systemLogs.filter(l => l.level === 'error').length;
+    document.getElementById('glanceErrorCount').innerText = `${errCount} 条`;
     
     renderLog(logObj);
     saveLogs();
@@ -732,8 +732,9 @@ function clearLogs() {
     if (terminal) terminal.innerHTML = '';
     const countEl = document.getElementById('logCount');
     if (countEl) countEl.innerText = '0';
+    document.getElementById('glanceErrorCount').innerText = '0 条';
     saveLogs();
-    addLog('日志终端已重置成功', 'info');
+    addLog('运行终端已成功重置并就绪', 'info');
 }
 
 document.getElementById('logLevelFilter')?.addEventListener('change', () => {
@@ -747,6 +748,7 @@ function exportLogs() {
         showToast("⚠️ 导出失败", "当前日志终端暂无任何数据记录可供导出", "warning");
         return;
     }
+    
     let content = "=== Intelligent Farm System Console Logs ===\n";
     content += `导出时间: ${new Date().toLocaleString('zh-CN')}\n\n`;
     
