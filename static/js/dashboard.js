@@ -541,8 +541,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if(typeof addLog === 'function') addLog(`收到传感器数据: 空温 ${data.temp}°C | 空湿 ${data.air_humi}% | 土湿 ${data.soil_humi}% | 光照 ${data.light}lx | CO2 ${data.co2}ppm | pH ${data.ph}`, 'info');
             updateUI(data);
             
-            // 收到最新传感数据的同时，触发一次统计数据的刷新
-            fetchStats();
+            // 收到最新传感数据的同时，不再频繁向后端接口刷屏请求 stats，改为轻量级定时刷新和手动刷新
             
             // 如果图表正在显示，且处于“实时”模式，流式更新图表
             const timeUnit = document.getElementById('modalTimeUnit').value;
@@ -601,6 +600,8 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     setInterval(updateClock, 1000);
+    // 定时每 30 秒拉取一次 24 小时聚合统计数据，保证数据同步的同时防止数据库高频请求过载
+    setInterval(fetchStats, 30000);
     document.getElementById('manualRefreshBtn').addEventListener('click', manualRefresh);
     document.getElementById('exportAllCsvBtn').addEventListener('click', exportAllCsv);
     updateClock();
