@@ -887,9 +887,7 @@ body {
 .toast {
     display: flex;
     align-items: center;
-    background: rgba(8, 20, 13, 0.92);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    background: #08140d;
     border-radius: 1.25rem;
     padding: 1rem 1.5rem;
     box-shadow: 0 20px 48px -10px rgba(0, 0, 0, 0.6);
@@ -1512,4 +1510,19 @@ body.light-theme .log-select {
     background: #ffffff;
     border: 1px solid #cbd5e1;
     color: #0f172a;
+}
+
+/* Light Theme Toast notifications overrides */
+body.light-theme .toast {
+    background: #ffffff;
+    border-color: rgba(0, 0, 0, 0.08);
+    box-shadow: 0 16px 36px -8px rgba(0, 0, 0, 0.08);
+}
+
+body.light-theme .toast-title {
+    color: #0f172a;
+}
+
+body.light-theme .toast-desc {
+    color: #475569;
 }
