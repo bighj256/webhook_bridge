@@ -305,6 +305,16 @@ async function renderChartFromAPI() {
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     
+    const isLight = document.body.classList.contains('light-theme');
+    const labelColor = isLight ? '#334155' : '#a3b8cc';
+    const tickColor = isLight ? '#475569' : '#64748b';
+    const gridColor = isLight ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.03)';
+    const xGridColor = isLight ? 'rgba(0, 0, 0, 0.03)' : 'rgba(255, 255, 255, 0.02)';
+    const tooltipBg = isLight ? 'rgba(255, 255, 255, 0.98)' : 'rgba(12, 30, 20, 0.95)';
+    const tooltipTitle = isLight ? '#0f172a' : '#ffffff';
+    const tooltipBody = isLight ? '#334155' : '#e2e8f0';
+    const tooltipBorder = isLight ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.08)';
+
     const selectedFields = getSelectedMetrics();
     if (selectedFields.length === 0) {
         if (currentChart) currentChart.destroy();
@@ -377,16 +387,16 @@ async function renderChartFromAPI() {
                 title: { 
                     display: true, 
                     text: cfg.yLabel,
-                    color: '#a3b8cc',
+                    color: labelColor,
                     font: { family: "'Plus Jakarta Sans', sans-serif", weight: '700', size: 11 }
                 },
                 ticks: {
-                    color: '#64748b',
+                    color: tickColor,
                     font: { family: "'Plus Jakarta Sans', sans-serif", size: 10, weight: '600' }
                 },
                 grid: { 
                     drawOnChartArea: index === 0,
-                    color: 'rgba(255, 255, 255, 0.03)'
+                    color: gridColor
                 }
             };
         });
@@ -404,7 +414,7 @@ async function renderChartFromAPI() {
                     legend: { 
                         position: 'top',
                         labels: {
-                            color: '#a3b8cc',
+                            color: labelColor,
                             font: { family: "'Plus Jakarta Sans', sans-serif", size: 12, weight: '700' },
                             usePointStyle: true,
                             pointStyle: 'circle',
@@ -412,10 +422,10 @@ async function renderChartFromAPI() {
                         }
                     },
                     tooltip: {
-                        backgroundColor: 'rgba(12, 30, 20, 0.95)',
-                        titleColor: '#ffffff',
-                        bodyColor: '#e2e8f0',
-                        borderColor: 'rgba(255, 255, 255, 0.08)',
+                        backgroundColor: tooltipBg,
+                        titleColor: tooltipTitle,
+                        bodyColor: tooltipBody,
+                        borderColor: tooltipBorder,
                         borderWidth: 1,
                         cornerRadius: 12,
                         padding: 12,
@@ -431,14 +441,14 @@ async function renderChartFromAPI() {
                 scales: {
                     x: {
                         ticks: {
-                            color: '#64748b',
+                            color: tickColor,
                             font: { family: "'Plus Jakarta Sans', sans-serif", size: 10, weight: '600' },
                             maxTicksLimit: 10,
                             maxRotation: 0,
                             minRotation: 0
                         },
                         grid: {
-                            color: 'rgba(255, 255, 255, 0.02)'
+                            color: xGridColor
                         }
                     },
                     ...yAxes
@@ -643,27 +653,29 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // ---------- 极速流畅模式切换控制 ----------
-    const perfCheckbox = document.getElementById('perfModeCheckbox');
+    // ---------- 浅色/深色主题动态 SVG 切换控制 ----------
+    const themeBtn = document.getElementById('themeToggleBtn');
     
-    // 初始化极速模式状态
-    const isPerfActive = localStorage.getItem('perfModeActive') === 'true';
-    if (perfCheckbox) {
-        perfCheckbox.checked = isPerfActive;
-        if (isPerfActive) {
-            document.body.classList.add('perf-mode-active');
-        }
-        
-        perfCheckbox.addEventListener('change', (e) => {
-            const active = e.target.checked;
-            if (active) {
-                document.body.classList.add('perf-mode-active');
-                localStorage.setItem('perfModeActive', 'true');
-                showToast("⚡ 极速流畅模式已开启", "已停用 CPU/GPU 高阶渲染与动态特效，帧率已拉满。", "info");
+    // 初始化主题状态 (默认为深色主题)
+    const isLightMode = localStorage.getItem('themeMode') === 'light';
+    if (isLightMode) {
+        document.body.classList.add('light-theme');
+    }
+    
+    if (themeBtn) {
+        themeBtn.addEventListener('click', () => {
+            const currentLight = document.body.classList.toggle('light-theme');
+            localStorage.setItem('themeMode', currentLight ? 'light' : 'dark');
+            
+            if (currentLight) {
+                showToast("☀️ 浅色明亮模式已启用", "界面已转换为优雅清新的明亮配色体系，阅读体验更佳。", "info");
             } else {
-                document.body.classList.remove('perf-mode-active');
-                localStorage.setItem('perfModeActive', 'false');
-                showToast("✨ 极臻高保真模式已开启", "毛玻璃高斯模糊及微动态特效已完全还原。", "info");
+                showToast("🌙 深色极简模式已启用", "硬朗高对比度的 OLED 深色模式就绪，节电护眼。", "info");
+            }
+            
+            // 动态刷新历史趋势分析图的网格和标签颜色！
+            if (document.getElementById('chartModal') && document.getElementById('chartModal').style.display === 'flex') {
+                renderChartFromAPI();
             }
         });
     }

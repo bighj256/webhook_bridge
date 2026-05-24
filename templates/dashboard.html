@@ -7,24 +7,21 @@
     <title>Agri Monitor — 智慧农业监测系统</title>
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=1.2.3">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=1.2.5">
 </head>
 
 <body>
     <!-- Skip Link for Keyboard Navigation Accessibility -->
     <a href="#main-content" class="skip-link">跳过导航至主监控舱</a>
 
-    <!-- Background Ambient Glowing Orbs -->
-    <div class="ambient-glow glow-1" aria-hidden="true"></div>
-    <div class="ambient-glow glow-2" aria-hidden="true"></div>
-    <div class="ambient-glow glow-3" aria-hidden="true"></div>
+
 
     <div class="dashboard-container">
         <!-- LEFT SIDEBAR CONTROL PANEL -->
         <aside class="sidebar" role="complementary" aria-label="侧边主控中心">
             <div class="brand-section">
                 <h1 class="brand-title" translate="no">
-                    <span aria-hidden="true">🌾</span> Agri Monitor
+                    <span aria-hidden="true" style="color:#FFFFFF00">🌾</span> Agri Monitor
                 </h1>
                 <div class="brand-sub">智能农场全环境监测</div>
             </div>
@@ -48,24 +45,11 @@
             </div>
             <!-- Digital等宽 Live Clock -->
             <div class="clock-section">
-                <div class="clock-label">当前系统时间 (Local Time)</div>
+                <div class="clock-label">当前系统时间</div>
                 <div class="live-clock" id="liveClock" aria-label="系统实时时钟">--:--:--</div>
             </div>
 
-            <!-- Performance Smoothness Switch -->
-            <div class="sidebar-status-box performance-box">
-                <div class="status-indicator">
-                    <span aria-hidden="true">⚡</span>
-                    <span class="status-text">系统渲染优化</span>
-                </div>
-                <div class="perf-switch-container">
-                    <span class="perf-label" id="perfLabelText">极速流畅模式</span>
-                    <label class="perf-switch" for="perfModeCheckbox">
-                        <input type="checkbox" id="perfModeCheckbox" aria-label="启用极速流畅模式">
-                        <span class="slider"></span>
-                    </label>
-                </div>
-            </div>
+
 
             <!-- Sidebar Actions HUB -->
             <div class="sidebar-actions">
@@ -81,8 +65,7 @@
             </div>
 
             <div class="sidebar-footer">
-                <span translate="no">Agri Monitor v1.2.0</span><br>
-                <span>基于 Web 规范重构</span>
+                <span translate="no">Agri Monitor v1.2.5</span><br>
             </div>
         </aside>
 
@@ -91,8 +74,8 @@
             <!-- Top Summary Glance Row -->
             <header class="main-header">
                 <div class="header-welcome">
-                    <h2>实时状态分析 (Real-Time Metrics)</h2>
-                    <p>展示从 STM32 节点通过 Lora / NB-IoT 物理层上传的各项土壤与空气环境因子。</p>
+                    <h2>实时状态分析</h2>
+                    <p>展示从 STM32 节点通过 Lora / NB-IoT 物理层上传的各项土壤与空气环境因子</p>
                 </div>
                 <div class="summary-glance-row">
                     <div class="glance-pill">
@@ -107,18 +90,46 @@
                         <span class="pill-label">上报频率</span>
                         <span class="pill-val">~5.0s</span>
                     </div>
+                    <!-- Premium Dynamic Theme Toggle -->
+                    <button id="themeToggleBtn" class="theme-toggle-btn" aria-label="切换浅色与深色主题" title="切换浅色与深色主题">
+                        <svg class="theme-toggle-svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <mask id="theme-mask">
+                                <rect x="0" y="0" width="24" height="24" fill="white" />
+                                <circle cx="24" cy="0" r="6" fill="black" class="mask-circle" />
+                            </mask>
+                            <!-- Sun rays -->
+                            <g class="sun-beams" stroke="currentColor">
+                                <line x1="12" y1="1" x2="12" y2="3" />
+                                <line x1="12" y1="21" x2="12" y2="23" />
+                                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                                <line x1="1" y1="12" x2="3" y2="12" />
+                                <line x1="21" y1="12" x2="23" y2="12" />
+                                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+                            </g>
+                            <!-- Center Sun circle or Moon crescent -->
+                            <circle cx="12" cy="12" r="5" fill="currentColor" class="sun-center"
+                                mask="url(#theme-mask)" />
+                        </svg>
+                    </button>
                 </div>
             </header>
 
             <!-- Cards Grid (OLED Neon Glassmorphism) -->
             <div class="grid" role="region" aria-label="传感器监控卡片区">
                 <!-- pH Card -->
-                <section class="card" data-type="ph" id="phCard" role="button" tabindex="0" aria-label="土壤 pH 值传感器卡片，点击查看历史趋势分析">
+                <section class="card" data-type="ph" id="phCard" role="button" tabindex="0"
+                    aria-label="土壤 pH 值传感器卡片，点击查看历史趋势分析">
                     <div class="card-header">
                         <div class="sensor-icon" aria-hidden="true">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="24" height="24">
-                                <path d="M9 3h6M10 3v14a4 4 0 0 0 8 0V3M14 3v6" stroke-linecap="round" stroke-linejoin="round" />
-                                <path class="liquid-fluid" d="M10 12c1 0 1.5 1 2.5 1s1.5-1 2.5-1v5a3 3 0 0 1-5 0z" fill="var(--sensor-color)" opacity="0.35" />
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="24"
+                                height="24">
+                                <path d="M9 3h6M10 3v14a4 4 0 0 0 8 0V3M14 3v6" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                                <path class="liquid-fluid" d="M10 12c1 0 1.5 1 2.5 1s1.5-1 2.5-1v5a3 3 0 0 1-5 0z"
+                                    fill="var(--sensor-color)" opacity="0.35" />
                                 <circle class="bubble b-1" cx="11" cy="14" r="0.8" fill="var(--sensor-color)" />
                                 <circle class="bubble b-2" cx="13" cy="10" r="0.6" fill="var(--sensor-color)" />
                                 <circle class="bubble b-3" cx="12" cy="7" r="0.7" fill="var(--sensor-color)" />
@@ -145,17 +156,22 @@
                         <span class="range-hint">适宜 6.0~7.5</span>
                     </div>
                     <div class="daily-stats">
-                        <div class="stat-pill"><span class="stat-label">24h均</span><span class="stat-val" id="cardAvgPh">--</span></div>
-                        <div class="stat-pill"><span class="stat-label">最高</span><span class="stat-val stat-max" id="cardMaxPh">--</span></div>
-                        <div class="stat-pill"><span class="stat-label">最低</span><span class="stat-val stat-min" id="cardMinPh">--</span></div>
+                        <div class="stat-pill"><span class="stat-label">24h均</span><span class="stat-val"
+                                id="cardAvgPh">--</span></div>
+                        <div class="stat-pill"><span class="stat-label">最高</span><span class="stat-val stat-max"
+                                id="cardMaxPh">--</span></div>
+                        <div class="stat-pill"><span class="stat-label">最低</span><span class="stat-val stat-min"
+                                id="cardMinPh">--</span></div>
                     </div>
                 </section>
 
                 <!-- CO2 Card -->
-                <section class="card" data-type="co2" id="co2Card" role="button" tabindex="0" aria-label="CO₂ 浓度传感器卡片，点击查看历史趋势分析">
+                <section class="card" data-type="co2" id="co2Card" role="button" tabindex="0"
+                    aria-label="CO₂ 浓度传感器卡片，点击查看历史趋势分析">
                     <div class="card-header">
                         <div class="sensor-icon" aria-hidden="true">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="24" height="24" stroke-linecap="round" stroke-linejoin="round">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="24"
+                                height="24" stroke-linecap="round" stroke-linejoin="round">
                                 <path class="wind-line w-1" d="M2 8h10c1.5 0 2.5-1 2.5-2.5S13.5 3 12 3H10" />
                                 <path class="wind-line w-2" d="M2 12h14c1.5 0 2.5 1 2.5 2.5S17.5 17 16 17H14" />
                                 <path class="wind-line w-3" d="M2 16h8" />
@@ -182,18 +198,24 @@
                         <span class="range-hint">适宜 400~800ppm</span>
                     </div>
                     <div class="daily-stats">
-                        <div class="stat-pill"><span class="stat-label">24h均</span><span class="stat-val" id="cardAvgCo2">--</span></div>
-                        <div class="stat-pill"><span class="stat-label">最高</span><span class="stat-val stat-max" id="cardMaxCo2">--</span></div>
-                        <div class="stat-pill"><span class="stat-label">最低</span><span class="stat-val stat-min" id="cardMinCo2">--</span></div>
+                        <div class="stat-pill"><span class="stat-label">24h均</span><span class="stat-val"
+                                id="cardAvgCo2">--</span></div>
+                        <div class="stat-pill"><span class="stat-label">最高</span><span class="stat-val stat-max"
+                                id="cardMaxCo2">--</span></div>
+                        <div class="stat-pill"><span class="stat-label">最低</span><span class="stat-val stat-min"
+                                id="cardMinCo2">--</span></div>
                     </div>
                 </section>
 
                 <!-- Soil Moisture Card -->
-                <section class="card" data-type="soilMoisture" id="soilMoistureCard" role="button" tabindex="0" aria-label="土壤湿度传感器卡片，点击查看历史趋势分析">
+                <section class="card" data-type="soilMoisture" id="soilMoistureCard" role="button" tabindex="0"
+                    aria-label="土壤湿度传感器卡片，点击查看历史趋势分析">
                     <div class="card-header">
                         <div class="sensor-icon" aria-hidden="true">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="24" height="24" stroke-linecap="round" stroke-linejoin="round">
-                                <path class="droplet" d="M12 22a7 7 0 0 0 7-7c0-4.3-7-13-7-13S5 10.7 5 15a7 7 0 0 0 7 7z" />
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="24"
+                                height="24" stroke-linecap="round" stroke-linejoin="round">
+                                <path class="droplet"
+                                    d="M12 22a7 7 0 0 0 7-7c0-4.3-7-13-7-13S5 10.7 5 15a7 7 0 0 0 7 7z" />
                                 <path class="ripple-ring r-1" d="M12 22a8.5 8.5 0 0 0 8.5-8.5" opacity="0" />
                                 <path class="ripple-ring r-2" d="M12 22a10 10 0 0 0 10-10" opacity="0" />
                             </svg>
@@ -219,17 +241,22 @@
                         <span class="range-hint">适宜 30%~70%</span>
                     </div>
                     <div class="daily-stats">
-                        <div class="stat-pill"><span class="stat-label">24h均</span><span class="stat-val" id="cardAvgSoil">--</span></div>
-                        <div class="stat-pill"><span class="stat-label">最高</span><span class="stat-val stat-max" id="cardMaxSoil">--</span></div>
-                        <div class="stat-pill"><span class="stat-label">最低</span><span class="stat-val stat-min" id="cardMinSoil">--</span></div>
+                        <div class="stat-pill"><span class="stat-label">24h均</span><span class="stat-val"
+                                id="cardAvgSoil">--</span></div>
+                        <div class="stat-pill"><span class="stat-label">最高</span><span class="stat-val stat-max"
+                                id="cardMaxSoil">--</span></div>
+                        <div class="stat-pill"><span class="stat-label">最低</span><span class="stat-val stat-min"
+                                id="cardMinSoil">--</span></div>
                     </div>
                 </section>
 
                 <!-- Light Card -->
-                <section class="card" data-type="light" id="lightCard" role="button" tabindex="0" aria-label="光照强度传感器卡片，点击查看历史趋势分析">
+                <section class="card" data-type="light" id="lightCard" role="button" tabindex="0"
+                    aria-label="光照强度传感器卡片，点击查看历史趋势分析">
                     <div class="card-header">
                         <div class="sensor-icon" aria-hidden="true">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="24" height="24" stroke-linecap="round" stroke-linejoin="round">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="24"
+                                height="24" stroke-linecap="round" stroke-linejoin="round">
                                 <circle class="sun-core" cx="12" cy="12" r="5" />
                                 <g class="sun-rays">
                                     <line x1="12" y1="1" x2="12" y2="3" />
@@ -264,21 +291,29 @@
                         <span class="range-hint">适宜 2000~10000 lux</span>
                     </div>
                     <div class="daily-stats">
-                        <div class="stat-pill"><span class="stat-label">24h均</span><span class="stat-val" id="cardAvgLight">--</span></div>
-                        <div class="stat-pill"><span class="stat-label">最高</span><span class="stat-val stat-max" id="cardMaxLight">--</span></div>
-                        <div class="stat-pill"><span class="stat-label">最低</span><span class="stat-val stat-min" id="cardMinLight">--</span></div>
+                        <div class="stat-pill"><span class="stat-label">24h均</span><span class="stat-val"
+                                id="cardAvgLight">--</span></div>
+                        <div class="stat-pill"><span class="stat-label">最高</span><span class="stat-val stat-max"
+                                id="cardMaxLight">--</span></div>
+                        <div class="stat-pill"><span class="stat-label">最低</span><span class="stat-val stat-min"
+                                id="cardMinLight">--</span></div>
                     </div>
                 </section>
 
                 <!-- Air Temp Card -->
-                <section class="card" data-type="airTemp" id="airTempCard" role="button" tabindex="0" aria-label="空气温度传感器卡片，点击查看历史趋势分析">
+                <section class="card" data-type="airTemp" id="airTempCard" role="button" tabindex="0"
+                    aria-label="空气温度传感器卡片，点击查看历史趋势分析">
                     <div class="card-header">
                         <div class="sensor-icon" aria-hidden="true">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="24" height="24" stroke-linecap="round" stroke-linejoin="round">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="24"
+                                height="24" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z" />
-                                <path class="temp-liquid" d="M11 12.5v2.26a2.5 2.5 0 1 0 2 0v-2.26" fill="var(--sensor-color)" opacity="0.6" />
-                                <path class="thermal-wave t-1" d="M17 5c0 0 .5-1 1-1s1 1 1 1 .5-1 1-1" stroke-width="1.5" />
-                                <path class="thermal-wave t-2" d="M17 9c0 0 .5-1 1-1s1 1 1 1 .5-1 1-1" stroke-width="1.5" />
+                                <path class="temp-liquid" d="M11 12.5v2.26a2.5 2.5 0 1 0 2 0v-2.26"
+                                    fill="var(--sensor-color)" opacity="0.6" />
+                                <path class="thermal-wave t-1" d="M17 5c0 0 .5-1 1-1s1 1 1 1 .5-1 1-1"
+                                    stroke-width="1.5" />
+                                <path class="thermal-wave t-2" d="M17 9c0 0 .5-1 1-1s1 1 1 1 .5-1 1-1"
+                                    stroke-width="1.5" />
                             </svg>
                         </div>
                         <h3>空气温度</h3>
@@ -302,18 +337,24 @@
                         <span class="range-hint">适宜 18~28°C</span>
                     </div>
                     <div class="daily-stats">
-                        <div class="stat-pill"><span class="stat-label">24h均</span><span class="stat-val" id="cardAvgTemp">--</span></div>
-                        <div class="stat-pill"><span class="stat-label">最高</span><span class="stat-val stat-max" id="cardMaxTemp">--</span></div>
-                        <div class="stat-pill"><span class="stat-label">最低</span><span class="stat-val stat-min" id="cardMinTemp">--</span></div>
+                        <div class="stat-pill"><span class="stat-label">24h均</span><span class="stat-val"
+                                id="cardAvgTemp">--</span></div>
+                        <div class="stat-pill"><span class="stat-label">最高</span><span class="stat-val stat-max"
+                                id="cardMaxTemp">--</span></div>
+                        <div class="stat-pill"><span class="stat-label">最低</span><span class="stat-val stat-min"
+                                id="cardMinTemp">--</span></div>
                     </div>
                 </section>
 
                 <!-- Air Hum Card -->
-                <section class="card" data-type="airHum" id="airHumCard" role="button" tabindex="0" aria-label="空气湿度传感器卡片，点击查看历史趋势分析">
+                <section class="card" data-type="airHum" id="airHumCard" role="button" tabindex="0"
+                    aria-label="空气湿度传感器卡片，点击查看历史趋势分析">
                     <div class="card-header">
                         <div class="sensor-icon" aria-hidden="true">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="24" height="24" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M18 10h-.01c.01-.16.01-.32.01-.48a5.5 5.5 0 0 0-10.32-2.58A5 5 0 0 0 4 11.5a5 5 0 0 0 5 5h9a4.5 4.5 0 0 0 0-9z" />
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="24"
+                                height="24" stroke-linecap="round" stroke-linejoin="round">
+                                <path
+                                    d="M18 10h-.01c.01-.16.01-.32.01-.48a5.5 5.5 0 0 0-10.32-2.58A5 5 0 0 0 4 11.5a5 5 0 0 0 5 5h9a4.5 4.5 0 0 0 0-9z" />
                                 <line class="rain-drop d-1" x1="8" y1="18" x2="8" y2="20" stroke-width="1.5" />
                                 <line class="rain-drop d-2" x1="12" y1="18" x2="12" y2="20" stroke-width="1.5" />
                                 <line class="rain-drop d-3" x1="16" y1="18" x2="16" y2="20" stroke-width="1.5" />
@@ -340,9 +381,12 @@
                         <span class="range-hint">适宜 45%~75%</span>
                     </div>
                     <div class="daily-stats">
-                        <div class="stat-pill"><span class="stat-label">24h均</span><span class="stat-val" id="cardAvgHum">--</span></div>
-                        <div class="stat-pill"><span class="stat-label">最高</span><span class="stat-val stat-max" id="cardMaxHum">--</span></div>
-                        <div class="stat-pill"><span class="stat-label">最低</span><span class="stat-val stat-min" id="cardMinHum">--</span></div>
+                        <div class="stat-pill"><span class="stat-label">24h均</span><span class="stat-val"
+                                id="cardAvgHum">--</span></div>
+                        <div class="stat-pill"><span class="stat-label">最高</span><span class="stat-val stat-max"
+                                id="cardMaxHum">--</span></div>
+                        <div class="stat-pill"><span class="stat-label">最低</span><span class="stat-val stat-min"
+                                id="cardMinHum">--</span></div>
                     </div>
                 </section>
             </div>
@@ -351,7 +395,7 @@
 
             <!-- Bottom Footer Area -->
             <footer class="main-footer-area">
-                <p>🌿 智能温室监控舱 · 每 5.0 秒拉取物理层最新数据并进行本地化校正 | 点击任意传感器查看趋势图</p>
+                <p>🌿 智能农场监控系统 · 每 5.0 秒拉取物理层最新数据并进行本地化校正 | 点击任意传感器查看趋势图</p>
             </footer>
         </main>
     </div>
@@ -377,7 +421,8 @@
                     <!-- Checkboxes for metrics selection -->
                     <div class="ctrl-group">
                         <span class="control-label" id="checkbox-group-label">📌 监测数据项 (最多勾选 2 个)：</span>
-                        <div class="metric-checkboxes" id="metricCheckboxes" role="group" aria-labelledby="checkbox-group-label">
+                        <div class="metric-checkboxes" id="metricCheckboxes" role="group"
+                            aria-labelledby="checkbox-group-label">
                             <label for="cb-ph">
                                 <input type="checkbox" id="cb-ph" name="metrics" value="ph" data-name="pH值"> pH值
                             </label>
@@ -385,7 +430,8 @@
                                 <input type="checkbox" id="cb-co2" name="metrics" value="co2" data-name="CO2"> CO₂浓度
                             </label>
                             <label for="cb-soil_humi">
-                                <input type="checkbox" id="cb-soil_humi" name="metrics" value="soil_humi" data-name="土壤湿度"> 土壤湿度
+                                <input type="checkbox" id="cb-soil_humi" name="metrics" value="soil_humi"
+                                    data-name="土壤湿度"> 土壤湿度
                             </label>
                             <label for="cb-light">
                                 <input type="checkbox" id="cb-light" name="metrics" value="light" data-name="光照"> 光照强度
@@ -394,7 +440,8 @@
                                 <input type="checkbox" id="cb-temp" name="metrics" value="temp" data-name="空气温度"> 空气温度
                             </label>
                             <label for="cb-air_humi">
-                                <input type="checkbox" id="cb-air_humi" name="metrics" value="air_humi" data-name="空气湿度"> 空气湿度
+                                <input type="checkbox" id="cb-air_humi" name="metrics" value="air_humi"
+                                    data-name="空气湿度"> 空气湿度
                             </label>
                         </div>
                     </div>
@@ -403,7 +450,7 @@
                     <div class="ctrl-group">
                         <label for="modalTimeUnit">📅 选择历史时段：</label>
                         <select id="modalTimeUnit" name="time_unit">
-                            <option value="live" selected>实时动态 (近 5 分钟)</option>
+                            <option value="live" selected>实时动态: 近 5 分钟</option>
                             <option value="hour">历史快照: 近 24 小时</option>
                             <option value="day">历史快照: 近 7 天</option>
                             <option value="week">历史快照: 近 8 周</option>
@@ -450,10 +497,10 @@
                 <div class="modal-header-actions">
                     <label for="logLevelFilter" class="sr-only">过滤日志级别</label>
                     <select id="logLevelFilter" class="log-select">
-                        <option value="all">所有日志级别 (All Logs)</option>
-                        <option value="info">🟢 数据监控 (Info)</option>
-                        <option value="warn">🟡 系统警告 (Warn)</option>
-                        <option value="error">🔴 异常告警 (Error)</option>
+                        <option value="all">所有日志级别</option>
+                        <option value="info">🟢 数据监控</option>
+                        <option value="warn">🟡 系统警告</option>
+                        <option value="error">🔴 异常告警</option>
                     </select>
                     <button class="log-btn" id="exportLogBtn" title="无损导出终端日志流">
                         <span aria-hidden="true">📥</span> 导出日志
@@ -469,7 +516,8 @@
                 <div class="log-terminal" id="logTerminal" role="log" aria-live="polite">
                     <div class="log-entry log-info">
                         <span class="log-time" aria-label="日志时间">[系统连接]</span>
-                        <span class="log-msg" translate="no">System live shell initialized. Listening to SSE streams…</span>
+                        <span class="log-msg" translate="no">System live shell initialized. Listening to SSE
+                            streams…</span>
                     </div>
                 </div>
             </div>
@@ -479,7 +527,7 @@
     <!-- Live Toast Area -->
     <div id="toastContainer" class="toast-container" aria-live="polite"></div>
 
-    <script src="{{ url_for('static', filename='js/dashboard.js') }}?v=1.2.3"></script>
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}?v=1.2.4"></script>
 </body>
 
 </html>
