@@ -677,7 +677,12 @@ function exportCsv() {
     } else {
         const now = new Date();
         let start = new Date();
-        if (timeUnit === 'hour') start.setHours(start.getHours() - 24);
+        if (timeUnit === 'live') start.setMinutes(start.getMinutes() - 5);
+        else if (timeUnit === '30m') start.setMinutes(start.getMinutes() - 30);
+        else if (timeUnit === '1h') start.setHours(start.getHours() - 1);
+        else if (timeUnit === '6h') start.setHours(start.getHours() - 6);
+        else if (timeUnit === '12h') start.setHours(start.getHours() - 12);
+        else if (timeUnit === 'hour') start.setHours(start.getHours() - 24);
         else if (timeUnit === 'day') start.setDate(start.getDate() - 7);
         else if (timeUnit === 'week') start.setDate(start.getDate() - 56);
         else if (timeUnit === 'month') start.setFullYear(start.getFullYear() - 1);

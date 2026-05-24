@@ -303,36 +303,53 @@ def trend_data():
             delta = end_date - start_date
             if delta.days > 60:
                 grain = 'day'
+                db_interval = '1 day'
             elif delta.days > 2:
                 grain = 'hour'
+                db_interval = '1 hour'
             else:
                 grain = 'minute'
+                db_interval = '1 minute'
             
             limit = 1000
         except ValueError:
             return jsonify({'error': 'invalid date format'}), 400
     else:
         intervals = {
-            'hour':  (now - timedelta(hours=24),   'hour',     24),
-            'day':   (now - timedelta(days=7),     'day',      7),
-            'week':  (now - timedelta(weeks=8),    'week',     8),
-            'month': (now - timedelta(days=365),   'month',    12),
-            'year':  (now - timedelta(days=1825),  'year',     5)
+            '30m':   (now - timedelta(minutes=30),  '5 seconds', 360),
+            '1h':    (now - timedelta(hours=1),     '1 minute',  60),
+            '6h':    (now - timedelta(hours=6),     '1 minute',  360),
+            '12h':   (now - timedelta(hours=12),    '1 minute',  720),
+            'hour':  (now - timedelta(hours=24),    '1 minute',  1440),
+            'day':   (now - timedelta(days=7),      '10 minutes', 1008),
+            'week':  (now - timedelta(weeks=8),     '1 week',    8),
+            'month': (now - timedelta(days=365),    '1 month',   12),
+            'year':  (now - timedelta(days=1825),   '1 year',    5)
         }
         if unit not in intervals:
             return jsonify({'error': 'invalid unit'}), 400
-        start_date, grain, limit = intervals[unit]
+        start_date, db_interval, limit = intervals[unit]
+        grain = db_interval
         end_date = now
 
     try:
         conn = get_db_connection()
         cur = conn.cursor()
         
+        # Decide structural date truncation or bucket expression depending on granularity
+        if db_interval == '1 month':
+            bucket_expr = "date_trunc('month', time)"
+        elif db_interval == '1 year':
+            bucket_expr = "date_trunc('year', time)"
+        else:
+            bucket_expr = f"time_bucket(CAST('{db_interval}' AS INTERVAL), time)"
+
         avg_selects = ", ".join([f"AVG({f}) AS avg_{f}" for f in fields])
         
+        # Run a simple, solid query that has NO text-to-timestamp matching errors in PG
         sql = f"""
             SELECT
-                time_bucket(CAST('1 ' || '{grain}' AS INTERVAL), time) AS bucket,
+                {bucket_expr} AS bucket,
                 {avg_selects}
             FROM sensor_data
             WHERE time >= %s AND time <= %s
@@ -344,28 +361,99 @@ def trend_data():
         cur.close()
         conn.close()
 
+        # Define bucket alignment helper in Python
+        def align_timestamp(dt, interval_str):
+            if interval_str == '5 seconds':
+                return dt.replace(second=(dt.second // 5) * 5, microsecond=0)
+            elif interval_str == '1 minute':
+                return dt.replace(second=0, microsecond=0)
+            elif interval_str == '10 minutes':
+                return dt.replace(minute=(dt.minute // 10) * 10, second=0, microsecond=0)
+            elif interval_str == '1 hour':
+                return dt.replace(minute=0, second=0, microsecond=0)
+            elif interval_str == '1 day':
+                return dt.replace(hour=0, minute=0, second=0, microsecond=0)
+            elif interval_str == '1 week':
+                monday = dt - timedelta(days=dt.weekday())
+                return monday.replace(hour=0, minute=0, second=0, microsecond=0)
+            return dt
+
+        # Define step size helper in Python
+        if db_interval == '5 seconds':
+            step = timedelta(seconds=5)
+        elif db_interval == '1 minute':
+            step = timedelta(minutes=1)
+        elif db_interval == '10 minutes':
+            step = timedelta(minutes=10)
+        elif db_interval == '1 hour':
+            step = timedelta(hours=1)
+        elif db_interval == '1 day':
+            step = timedelta(days=1)
+        elif db_interval == '1 week':
+            step = timedelta(weeks=1)
+        else:
+            step = None
+
+        # Build a fast O(1) dictionary of database-returned rows (forcing timezone-naive)
+        def make_naive(dt):
+            return dt.replace(tzinfo=None) if dt else None
+
+        data_map = {}
+        for row in rows:
+            if row[0]:
+                data_map[make_naive(row[0])] = row[1:]
+
+        # Align start/end dates to bucket boundaries
+        aligned_start = align_timestamp(start_date, db_interval)
+        aligned_end = align_timestamp(end_date, db_interval)
+
+        # Build continuously padded rows array
+        padded_rows = []
+        if step is not None:
+            current_time = aligned_start
+            while current_time <= aligned_end:
+                val = data_map.get(current_time)
+                if val is not None:
+                    padded_rows.append((current_time, *val))
+                else:
+                    # Pad missing ranges with 0.0
+                    padded_rows.append((current_time, *[0.0 for _ in fields]))
+                current_time += step
+        else:
+            # Fallback for month/year where gaps are extremely rare
+            padded_rows = [(make_naive(r[0]), *r[1:]) for r in rows if r[0]]
+
         labels = []
         datasets = {f: [] for f in fields}
         
-        for row in rows:
+        for row in padded_rows:
             bucket = row[0]
-            if unit == 'hour' or grain == 'hour':
-                labels.append(bucket.strftime('%m-%d %H:00'))
-            elif unit == 'day' or grain == 'day':
-                labels.append(bucket.strftime('%m-%d'))
+            if unit == '30m':
+                labels.append(bucket.strftime('%H:%M:%S'))
+            elif unit in ['1h', '6h', '12h', 'hour']:
+                labels.append(bucket.strftime('%H:%M'))
+            elif unit == 'day':
+                labels.append(bucket.strftime('%m-%d %H:%M'))
             elif unit == 'week':
                 labels.append(f"W{bucket.isocalendar()[1]}")
             elif unit == 'month':
                 labels.append(bucket.strftime('%Y-%m'))
-            elif grain == 'minute':
-                labels.append(bucket.strftime('%H:%M'))
-            else:  
+            elif unit == 'year':
                 labels.append(bucket.strftime('%Y'))
+            else:
+                # Custom query formatting based on custom grain
+                if grain == 'day':
+                    labels.append(bucket.strftime('%m-%d'))
+                elif grain == 'hour':
+                    labels.append(bucket.strftime('%m-%d %H:00'))
+                else:
+                    labels.append(bucket.strftime('%H:%M'))
                 
             for idx, f in enumerate(fields):
                 val = row[idx + 1]
-                datasets[f].append(round(float(val), 2) if val is not None else None)
+                datasets[f].append(round(float(val), 2) if val is not None else 0.0)
 
+        # Slice limit for non-custom queries to avoid overflow
         if not start_str: 
             labels = labels[-limit:]
             for f in fields:
