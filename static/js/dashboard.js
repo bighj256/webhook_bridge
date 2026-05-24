@@ -41,17 +41,17 @@ function triggerHeartbeatPulse(element) {
 }
 
 // ---------- 漂亮的非阻塞 Toast 消息框 ----------
-function showToast(title, message, type='alert') {
+function showToast(title, message, type = 'alert') {
     const container = document.getElementById('toastContainer');
     if (!container) return;
-    
+
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
-    
+
     let icon = '🟢';
     if (type === 'alert') icon = '🔴';
     else if (type === 'warning') icon = '🟡';
-    
+
     toast.innerHTML = `
         <div class="toast-icon" aria-hidden="true">${icon}</div>
         <div class="toast-content">
@@ -59,9 +59,9 @@ function showToast(title, message, type='alert') {
             <div class="toast-desc">${message}</div>
         </div>
     `;
-    
+
     container.appendChild(toast);
-    
+
     // 平滑移除
     setTimeout(() => {
         toast.classList.add('hiding');
@@ -75,48 +75,48 @@ function showToast(title, message, type='alert') {
 function getStatusDetails(value, metric) {
     let state = 'good';
     let text = '';
-    
-    switch(metric) {
+
+    switch (metric) {
         case 'airTemp':
-            if(value < 10) { state = 'alert'; text = '低温 · 防寒冻'; }
-            else if(value < 18) { state = 'warning'; text = '偏凉 · 注意保温'; }
-            else if(value <= 28) { state = 'good'; text = '舒适 · 生长旺盛'; }
-            else if(value <= 35) { state = 'warning'; text = '偏热 · 适当通风'; }
+            if (value < 10) { state = 'alert'; text = '低温 · 防寒冻'; }
+            else if (value < 18) { state = 'warning'; text = '偏凉 · 注意保温'; }
+            else if (value <= 28) { state = 'good'; text = '舒适 · 生长旺盛'; }
+            else if (value <= 35) { state = 'warning'; text = '偏热 · 适当通风'; }
             else { state = 'alert'; text = '高温 · 防热害'; }
             break;
         case 'airHum':
-            if(value < 30) { state = 'alert'; text = '干燥 · 增湿'; }
-            else if(value < 45) { state = 'warning'; text = '偏干 · 注意'; }
-            else if(value <= 75) { state = 'good'; text = '适宜 · 健康'; }
-            else if(value <= 85) { state = 'warning'; text = '偏湿 · 注意排湿'; }
+            if (value < 30) { state = 'alert'; text = '干燥 · 增湿'; }
+            else if (value < 45) { state = 'warning'; text = '偏干 · 注意'; }
+            else if (value <= 75) { state = 'good'; text = '适宜 · 健康'; }
+            else if (value <= 85) { state = 'warning'; text = '偏湿 · 注意排湿'; }
             else { state = 'alert'; text = '过湿 · 防病害'; }
             break;
         case 'soilMoisture':
-            if(value < 30) { state = 'alert'; text = '干旱 · 立即灌溉'; }
-            else if(value < 40) { state = 'warning'; text = '偏干 · 准备灌溉'; }
-            else if(value <= 70) { state = 'good'; text = '适宜 · 墒情良好'; }
-            else if(value <= 80) { state = 'warning'; text = '偏湿 · 注意'; }
+            if (value < 30) { state = 'alert'; text = '干旱 · 立即灌溉'; }
+            else if (value < 40) { state = 'warning'; text = '偏干 · 准备灌溉'; }
+            else if (value <= 70) { state = 'good'; text = '适宜 · 墒情良好'; }
+            else if (value <= 80) { state = 'warning'; text = '偏湿 · 注意'; }
             else { state = 'alert'; text = '过湿 · 排水防涝'; }
             break;
         case 'light':
-            if(value < 2000) { state = 'alert'; text = '光照极低 · 补光'; }
-            else if(value < 3000) { state = 'warning'; text = '光照不足 · 补光'; }
-            else if(value <= 10000) { state = 'good'; text = '光强适宜 · 健康'; }
-            else if(value <= 12000) { state = 'warning'; text = '偏强 · 注意'; }
+            if (value < 2000) { state = 'alert'; text = '光照极低 · 补光'; }
+            else if (value < 3000) { state = 'warning'; text = '光照不足 · 补光'; }
+            else if (value <= 10000) { state = 'good'; text = '光强适宜 · 健康'; }
+            else if (value <= 12000) { state = 'warning'; text = '偏强 · 注意'; }
             else { state = 'alert'; text = '光强过强 · 遮阴'; }
             break;
         case 'co2':
-            if(value < 300) { state = 'alert'; text = '浓度极低 · 光合停滞'; }
-            else if(value < 400) { state = 'warning'; text = '偏低 · 光合减弱'; }
-            else if(value <= 800) { state = 'good'; text = '正常 · 生长佳'; }
-            else if(value <= 1000) { state = 'warning'; text = '偏高 · 注意'; }
+            if (value < 300) { state = 'alert'; text = '浓度极低 · 光合停滞'; }
+            else if (value < 400) { state = 'warning'; text = '偏低 · 光合减弱'; }
+            else if (value <= 800) { state = 'good'; text = '正常 · 生长佳'; }
+            else if (value <= 1000) { state = 'warning'; text = '偏高 · 注意'; }
             else { state = 'alert'; text = '过高 · 注意通风'; }
             break;
         case 'ph':
-            if(value < 5.5) { state = 'alert'; text = '极酸 · 需改良'; }
-            else if(value < 6.0) { state = 'warning'; text = '偏酸性 · 注意调节'; }
-            else if(value <= 7.5) { state = 'good'; text = '中性 · 适宜'; }
-            else if(value <= 8.0) { state = 'warning'; text = '偏碱性 · 注意调节'; }
+            if (value < 5.5) { state = 'alert'; text = '极酸 · 需改良'; }
+            else if (value < 6.0) { state = 'warning'; text = '偏酸性 · 注意调节'; }
+            else if (value <= 7.5) { state = 'good'; text = '中性 · 适宜'; }
+            else if (value <= 8.0) { state = 'warning'; text = '偏碱性 · 注意调节'; }
             else { state = 'alert'; text = '极碱 · 需改良'; }
             break;
     }
@@ -126,21 +126,21 @@ function getStatusDetails(value, metric) {
 // ---------- UI 数值绘制更新器 ----------
 function updateMetricUI(metricName, value, valElem, fillElem, statusElem, percentValue, formatFn) {
     if (value === undefined || value === null) return;
-    
+
     const details = getStatusDetails(value, metricName);
     const newState = details.state;
-    
+
     const oldText = valElem.innerText;
     const newText = formatFn ? formatFn(value) : value;
     valElem.innerText = newText;
     if (oldText !== newText && oldText !== '--') {
         triggerHeartbeatPulse(valElem);
     }
-    
+
     valElem.classList.remove('text-warning', 'text-alert');
     fillElem.classList.remove('fill-warning', 'fill-alert');
     statusElem.classList.remove('status-good', 'status-warning', 'status-alert');
-    
+
     if (newState === 'alert') {
         valElem.classList.add('text-alert');
         fillElem.classList.add('fill-alert');
@@ -152,11 +152,11 @@ function updateMetricUI(metricName, value, valElem, fillElem, statusElem, percen
     } else {
         statusElem.classList.add('status-good');
     }
-    
+
     const strokeDashoffset = 263.9 - (263.9 * Math.min(100, Math.max(0, percentValue)) / 100);
     fillElem.style.strokeDashoffset = strokeDashoffset;
     statusElem.innerText = details.text;
-    
+
     const oldState = previousStates[metricName];
     if (newState !== oldState) {
         const metricChinese = {
@@ -180,7 +180,7 @@ function updateMetricUI(metricName, value, valElem, fillElem, statusElem, percen
 // ---------- UI 全局数据装载 ----------
 function updateUI(data) {
     const { temp: airTemp, air_humi: airHum, soil_humi: soilMoisture, light, ph, co2 } = data;
-    
+
     updateMetricUI('ph', ph, pHValueEl, pHFill, pHStatus, ph !== undefined ? (ph / 14) * 100 : 0, v => v.toFixed(1));
     updateMetricUI('co2', co2, co2ValueEl, co2Fill, co2Status, co2 !== undefined ? (co2 / 2000) * 100 : 0, v => Math.round(v));
     updateMetricUI('soilMoisture', soilMoisture, moistureValueEl, moistureFill, moistureStatus, soilMoisture !== undefined ? soilMoisture : 0, v => v.toFixed(1));
@@ -243,7 +243,7 @@ async function fetchLatestAndUpdate() {
 function manualRefresh() {
     fetchLatestAndUpdate();
     fetchStats();
-    
+
     // 强制触发全部卡片跳跃动画
     triggerHeartbeatPulse(pHValueEl);
     triggerHeartbeatPulse(co2ValueEl);
@@ -251,7 +251,7 @@ function manualRefresh() {
     triggerHeartbeatPulse(lightValueEl);
     triggerHeartbeatPulse(airTempValueEl);
     triggerHeartbeatPulse(airHumValueEl);
-    
+
     const btn = document.getElementById('manualRefreshBtn');
     const orig = btn.innerHTML;
     btn.innerHTML = '✅ 已校正最新数据';
@@ -304,7 +304,7 @@ async function renderChartFromAPI() {
     const canvas = document.getElementById('modalChartCanvas');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
-    
+
     const isLight = document.body.classList.contains('light-theme');
     const labelColor = isLight ? '#334155' : '#a3b8cc';
     const tickColor = isLight ? '#475569' : '#64748b';
@@ -324,9 +324,9 @@ async function renderChartFromAPI() {
 
     const timeUnit = document.getElementById('modalTimeUnit').value;
     const chartType = document.getElementById('modalChartType').value;
-    
+
     let url = `/api/trend?params=${selectedFields.join(',')}`;
-    
+
     if (timeUnit === 'custom') {
         const start = document.getElementById('customStartDate').value;
         const end = document.getElementById('customEndDate').value;
@@ -349,11 +349,11 @@ async function renderChartFromAPI() {
 
         const datasets = [];
         const yAxes = {};
-        
+
         selectedFields.forEach((field, index) => {
             const cfg = paramConfig[field];
             const axisId = `y${index === 0 ? '' : '1'}`;
-            
+
             let fillBg = cfg.color + '12';
             if (chartType === 'line') {
                 const gradient = ctx.createLinearGradient(0, 0, 0, 320);
@@ -363,7 +363,7 @@ async function renderChartFromAPI() {
             } else {
                 fillBg = cfg.color;
             }
-            
+
             datasets.push({
                 label: `${cfg.name} (${cfg.unit})`,
                 data: data.datasets[field],
@@ -384,8 +384,8 @@ async function renderChartFromAPI() {
                 type: 'linear',
                 display: true,
                 position: index === 0 ? 'left' : 'right',
-                title: { 
-                    display: true, 
+                title: {
+                    display: true,
                     text: cfg.yLabel,
                     color: labelColor,
                     font: { family: "'Plus Jakarta Sans', sans-serif", weight: '700', size: 11 }
@@ -394,7 +394,7 @@ async function renderChartFromAPI() {
                     color: tickColor,
                     font: { family: "'Plus Jakarta Sans', sans-serif", size: 10, weight: '600' }
                 },
-                grid: { 
+                grid: {
                     drawOnChartArea: index === 0,
                     color: gridColor
                 }
@@ -410,8 +410,8 @@ async function renderChartFromAPI() {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { 
-                    legend: { 
+                plugins: {
+                    legend: {
                         position: 'top',
                         labels: {
                             color: labelColor,
@@ -464,7 +464,7 @@ async function renderChartFromAPI() {
 // ---------- 模态框打开与关闭控制 ----------
 async function openModal(dataType) {
     const dbField = fieldMapping[dataType];
-    
+
     const checkboxes = document.querySelectorAll('#metricCheckboxes input[type="checkbox"]');
     checkboxes.forEach(cb => {
         cb.checked = (cb.value === dbField);
@@ -500,10 +500,10 @@ function exportCsv() {
         showToast("⚠️ 导出失败", "请先在指标列表中勾选至少一个环境监测项", "warning");
         return;
     }
-    
+
     const timeUnit = document.getElementById('modalTimeUnit').value;
     let url = `/api/export?params=${selectedFields.join(',')}`;
-    
+
     if (timeUnit === 'custom') {
         const start = document.getElementById('customStartDate').value;
         const end = document.getElementById('customEndDate').value;
@@ -521,7 +521,7 @@ function exportCsv() {
         else if (timeUnit === 'week') start.setDate(start.getDate() - 56);
         else if (timeUnit === 'month') start.setFullYear(start.getFullYear() - 1);
         else if (timeUnit === 'year') start.setFullYear(start.getFullYear() - 5);
-        
+
         const formatLocal = (d) => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().split('.')[0];
         url += `&start=${formatLocal(start)}&end=${formatLocal(now)}`;
     }
@@ -538,30 +538,30 @@ function exportAllCsv() {
 document.addEventListener('DOMContentLoaded', () => {
     fetchLatestAndUpdate();
     fetchStats();
-    
+
     const evtSource = new EventSource('/api/stream');
-    
-    evtSource.onopen = function() {
+
+    evtSource.onopen = function () {
         // 更新侧边栏与健康度
         systemStatusDot.style.background = '#34d399';
         systemStatusText.innerText = '实时正常监测';
         uploadStatusVal.innerText = 'SSE Online';
         addLog('已接入智慧温室数据推流层 (SSE)。', 'info');
     };
-    
-    evtSource.onerror = function() {
+
+    evtSource.onerror = function () {
         systemStatusDot.style.background = '#f87171';
         systemStatusText.innerText = '连接已被断开';
         uploadStatusVal.innerText = 'Reconnecting';
         addLog('网络断开，正在尝试重组推流连接…', 'error');
     };
 
-    evtSource.onmessage = function(event) {
+    evtSource.onmessage = function (event) {
         try {
             const data = JSON.parse(event.data);
             addLog(`STM32上报: 温度 ${data.temp}°C | 湿度 ${data.air_humi}% | 土湿 ${data.soil_humi}% | 光强 ${data.light}lx | CO2 ${data.co2}ppm | pH ${data.ph}`, 'info');
             updateUI(data);
-            
+
             // 如果处于“实时”且 Modal 展开，流式刷新图表
             const timeUnit = document.getElementById('modalTimeUnit').value;
             if (document.getElementById('chartModal').style.display === 'flex' && currentChart && timeUnit === 'live') {
@@ -570,7 +570,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     try {
                         const sseTime = new Date(data.time);
                         timeStr = `${String(sseTime.getHours()).padStart(2, '0')}:${String(sseTime.getMinutes()).padStart(2, '0')}:${String(sseTime.getSeconds()).padStart(2, '0')}`;
-                    } catch (e) {}
+                    } catch (e) { }
                 }
                 if (!timeStr) {
                     const d = new Date();
@@ -579,7 +579,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const lastLabel = currentChart.data.labels[currentChart.data.labels.length - 1];
                 const selectedFields = getSelectedMetrics();
-                
+
                 if (lastLabel === timeStr) {
                     selectedFields.forEach((field, index) => {
                         const val = data[field];
@@ -596,21 +596,21 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                     });
                 }
-                
+
                 if (currentChart.data.labels.length > 60) {
                     currentChart.data.labels.shift();
                     currentChart.data.datasets.forEach(dataset => dataset.data.shift());
                 }
                 currentChart.update();
             }
-        } catch(e) {
+        } catch (e) {
             console.error("解析 SSE 数据失败", e);
         }
     };
 
     setInterval(updateClock, 1000);
     setInterval(fetchStats, 30000);
-    
+
     document.getElementById('manualRefreshBtn').addEventListener('click', manualRefresh);
     document.getElementById('exportAllCsvBtn').addEventListener('click', exportAllCsv);
     updateClock();
@@ -641,11 +641,11 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('customDateGroup').style.display = e.target.value === 'custom' ? 'flex' : 'none';
         if (e.target.value !== 'custom') renderChartFromAPI();
     });
-    
+
     document.getElementById('modalChartType').addEventListener('change', renderChartFromAPI);
     document.getElementById('applyCustomDateBtn').addEventListener('click', renderChartFromAPI);
     document.getElementById('exportCsvBtn').addEventListener('click', exportCsv);
-    
+
     document.querySelectorAll('#metricCheckboxes input[type="checkbox"]').forEach(cb => {
         cb.addEventListener('change', () => {
             handleCheckboxLimit();
@@ -655,24 +655,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ---------- 浅色/深色主题动态 SVG 切换控制 ----------
     const themeBtn = document.getElementById('themeToggleBtn');
-    
+
     // 初始化主题状态 (默认为深色主题)
     const isLightMode = localStorage.getItem('themeMode') === 'light';
     if (isLightMode) {
         document.body.classList.add('light-theme');
     }
-    
+
     if (themeBtn) {
         themeBtn.addEventListener('click', () => {
             const currentLight = document.body.classList.toggle('light-theme');
             localStorage.setItem('themeMode', currentLight ? 'light' : 'dark');
-            
+
             if (currentLight) {
-                showToast("☀️ 浅色明亮模式已启用", "界面已转换为优雅清新的明亮配色体系，阅读体验更佳。", "info");
+                showToast("☀️ 已切换为浅色模式", "info");
             } else {
-                showToast("🌙 深色极简模式已启用", "硬朗高对比度的 OLED 深色模式就绪，节电护眼。", "info");
+                showToast("🌙 已切换为深色模式", "info");
             }
-            
+
             // 动态刷新历史趋势分析图的网格和标签颜色！
             if (document.getElementById('chartModal') && document.getElementById('chartModal').style.display === 'flex') {
                 renderChartFromAPI();
@@ -690,13 +690,13 @@ function saveLogs() {
 
 function updateLogCounts() {
     const total = systemLogs.length;
-    
+
     const badgeEl = document.getElementById('logBadgeCount');
     if (badgeEl) badgeEl.innerText = total;
-    
+
     const countEl = document.getElementById('logCount');
     if (countEl) countEl.innerText = total;
-    
+
     // 更新顶栏告警数
     const errCount = systemLogs.filter(l => l.level === 'error').length;
     const glanceErr = document.getElementById('glanceErrorCount');
@@ -709,7 +709,7 @@ function openLogModal() {
         modal.style.display = 'flex';
         // 自动聚焦到关闭按钮
         document.getElementById('closeLogModalBtn')?.focus();
-        
+
         // 滚动到终端最底部
         const terminal = document.getElementById('logTerminal');
         if (terminal) {
@@ -729,7 +729,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (saved) {
             systemLogs = JSON.parse(saved);
             updateLogCounts();
-            
+
             // 清空默认内容，重新渲染加载的所有日志
             const terminal = document.getElementById('logTerminal');
             if (terminal) terminal.innerHTML = '';
@@ -742,7 +742,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 绑定侧边栏按钮和关闭按钮
     document.getElementById('openLogModalBtn')?.addEventListener('click', openLogModal);
     document.getElementById('closeLogModalBtn')?.addEventListener('click', closeLogModal);
-    
+
     window.addEventListener('click', (e) => {
         const modal = document.getElementById('logModal');
         if (e.target === modal) closeLogModal();
@@ -757,7 +757,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('exportLogBtn')?.addEventListener('click', exportLogs);
     document.getElementById('clearLogBtn')?.addEventListener('click', clearLogs);
-    
+
     document.getElementById('logLevelFilter')?.addEventListener('change', () => {
         const terminal = document.getElementById('logTerminal');
         if (terminal) terminal.innerHTML = '';
@@ -772,13 +772,13 @@ const logTimeFormatter = new Intl.DateTimeFormat('zh-CN', {
     hour12: false
 });
 
-function addLog(message, level='info') {
+function addLog(message, level = 'info') {
     const timeStr = logTimeFormatter.format(new Date());
     const logObj = { time: timeStr, message, level };
     systemLogs.push(logObj);
-    
+
     if (systemLogs.length > 1000) systemLogs.shift();
-    
+
     updateLogCounts();
     renderLog(logObj);
     saveLogs();
@@ -787,20 +787,20 @@ function addLog(message, level='info') {
 function renderLog(log) {
     const filter = document.getElementById('logLevelFilter');
     if (filter && filter.value !== 'all' && filter.value !== log.level) return;
-    
+
     const terminal = document.getElementById('logTerminal');
     if (!terminal) return;
-    
+
     const entry = document.createElement('div');
     entry.className = `log-entry log-${log.level}`;
-    
+
     let prefix = '[INFO]  🟢';
     if (log.level === 'warn') prefix = '[WARN]  🟡';
     if (log.level === 'error') prefix = '[ERROR] 🔴';
-    
+
     entry.innerHTML = `<span class="log-time">[${log.time}]</span> <span class="log-msg">${prefix} ${log.message}</span>`;
     terminal.appendChild(entry);
-    
+
     terminal.scrollTop = terminal.scrollHeight;
 }
 
@@ -818,17 +818,17 @@ function exportLogs() {
         showToast("⚠️ 导出失败", "当前日志终端暂无任何数据记录可供导出", "warning");
         return;
     }
-    
+
     let content = "=== Intelligent Farm System Console Logs ===\n";
     content += `导出时间: ${new Date().toLocaleString('zh-CN')}\n\n`;
-    
+
     systemLogs.forEach(log => {
         let prefix = '[INFO] ';
         if (log.level === 'warn') prefix = '[WARN] ';
         if (log.level === 'error') prefix = '[ERROR]';
         content += `[${log.time}] ${prefix} ${log.message}\n`;
     });
-    
+
     const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
