@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>智慧农业监测系统</title>
+    <title>智慧农业监测系统 — 指挥中心</title>
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
@@ -12,32 +12,36 @@
 
 <body>
     <!-- Background Sunlit Ambient Glows -->
-    <div class="ambient-glow glow-1"></div>
-    <div class="ambient-glow glow-2"></div>
-    <div class="ambient-glow glow-3"></div>
+    <div class="ambient-glow glow-1" aria-hidden="true"></div>
+    <div class="ambient-glow glow-2" aria-hidden="true"></div>
+    <div class="ambient-glow glow-3" aria-hidden="true"></div>
 
     <div class="dashboard">
         <!-- Header Panel -->
         <header class="header">
             <div class="header-left">
                 <h1 class="title">
-                    <span style="color: #ffffff;">🌾</span> Agri Monitor
+                    <span style="color: #ffffff;" aria-hidden="true">🌾</span> Agri Monitor
                 </h1>
-                <div class="sub">智慧农业 · 全环境监测站</div>
+                <div class="sub">智慧农业 · 全环境监测指挥站</div>
             </div>
             <div class="header-meta">
-                <div class="live-time" id="liveClock">--:--:--</div>
-                <button class="refresh-btn" id="exportAllCsvBtn" title="一键导出所有历史环境参数为 CSV">📥 导出全部数据</button>
-                <button class="refresh-btn" id="manualRefreshBtn" title="拉取数据库最新上报数据">🔄 一键刷新传感器</button>
+                <div class="live-time" id="liveClock" aria-label="当前系统时间">--:--:--</div>
+                <button class="refresh-btn" id="exportAllCsvBtn" title="一键导出所有历史环境参数为 CSV">
+                    <span aria-hidden="true">📥</span> 导出全部数据
+                </button>
+                <button class="refresh-btn" id="manualRefreshBtn" title="拉取数据库最新上报数据">
+                    <span aria-hidden="true">🔄</span> 一键刷新传感器
+                </button>
             </div>
         </header>
 
         <!-- Main Cards Grid -->
         <main class="grid">
             <!-- pH Card -->
-            <section class="card" data-type="ph" id="phCard">
+            <section class="card" data-type="ph" id="phCard" role="button" tabindex="0" aria-label="土壤 pH 值传感器卡片，点击查看历史趋势分析">
                 <div class="card-header">
-                    <div class="sensor-icon">
+                    <div class="sensor-icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
                             <path d="M9 3h6M10 3v14a4 4 0 0 0 8 0V3M14 3v6" stroke-linecap="round"
                                 stroke-linejoin="round" />
@@ -53,7 +57,7 @@
 
                 <div class="gauge-area">
                     <div class="gauge-container">
-                        <svg class="gauge-svg" viewBox="0 0 100 100">
+                        <svg class="gauge-svg" viewBox="0 0 100 100" aria-hidden="true">
                             <circle class="gauge-track" cx="50" cy="50" r="42"></circle>
                             <circle class="gauge-fill" id="pHFill" cx="50" cy="50" r="42"></circle>
                         </svg>
@@ -79,9 +83,9 @@
             </section>
 
             <!-- CO2 Card -->
-            <section class="card" data-type="co2" id="co2Card">
+            <section class="card" data-type="co2" id="co2Card" role="button" tabindex="0" aria-label="CO₂ 浓度传感器卡片，点击查看历史趋势分析">
                 <div class="card-header">
-                    <div class="sensor-icon">
+                    <div class="sensor-icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
                             stroke-linecap="round" stroke-linejoin="round">
                             <path class="wind-line w-1" d="M2 8h10c1.5 0 2.5-1 2.5-2.5S13.5 3 12 3H10" />
@@ -94,7 +98,7 @@
 
                 <div class="gauge-area">
                     <div class="gauge-container">
-                        <svg class="gauge-svg" viewBox="0 0 100 100">
+                        <svg class="gauge-svg" viewBox="0 0 100 100" aria-hidden="true">
                             <circle class="gauge-track" cx="50" cy="50" r="42"></circle>
                             <circle class="gauge-fill" id="co2Fill" cx="50" cy="50" r="42"></circle>
                         </svg>
@@ -120,9 +124,9 @@
             </section>
 
             <!-- Soil Moisture Card -->
-            <section class="card" data-type="soilMoisture" id="soilMoistureCard">
+            <section class="card" data-type="soilMoisture" id="soilMoistureCard" role="button" tabindex="0" aria-label="土壤湿度传感器卡片，点击查看历史趋势分析">
                 <div class="card-header">
-                    <div class="sensor-icon">
+                    <div class="sensor-icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
                             stroke-linecap="round" stroke-linejoin="round">
                             <path class="droplet" d="M12 22a7 7 0 0 0 7-7c0-4.3-7-13-7-13S5 10.7 5 15a7 7 0 0 0 7 7z" />
@@ -135,7 +139,7 @@
 
                 <div class="gauge-area">
                     <div class="gauge-container">
-                        <svg class="gauge-svg" viewBox="0 0 100 100">
+                        <svg class="gauge-svg" viewBox="0 0 100 100" aria-hidden="true">
                             <circle class="gauge-track" cx="50" cy="50" r="42"></circle>
                             <circle class="gauge-fill" id="moistureFill" cx="50" cy="50" r="42"></circle>
                         </svg>
@@ -161,9 +165,9 @@
             </section>
 
             <!-- Light Card -->
-            <section class="card" data-type="light" id="lightCard">
+            <section class="card" data-type="light" id="lightCard" role="button" tabindex="0" aria-label="光照强度传感器卡片，点击查看历史趋势分析">
                 <div class="card-header">
-                    <div class="sensor-icon">
+                    <div class="sensor-icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
                             stroke-linecap="round" stroke-linejoin="round">
                             <circle class="sun-core" cx="12" cy="12" r="5" />
@@ -184,7 +188,7 @@
 
                 <div class="gauge-area">
                     <div class="gauge-container">
-                        <svg class="gauge-svg" viewBox="0 0 100 100">
+                        <svg class="gauge-svg" viewBox="0 0 100 100" aria-hidden="true">
                             <circle class="gauge-track" cx="50" cy="50" r="42"></circle>
                             <circle class="gauge-fill" id="lightFill" cx="50" cy="50" r="42"></circle>
                         </svg>
@@ -210,9 +214,9 @@
             </section>
 
             <!-- Air Temp Card -->
-            <section class="card" data-type="airTemp" id="airTempCard">
+            <section class="card" data-type="airTemp" id="airTempCard" role="button" tabindex="0" aria-label="空气温度传感器卡片，点击查看历史趋势分析">
                 <div class="card-header">
-                    <div class="sensor-icon">
+                    <div class="sensor-icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
                             stroke-linecap="round" stroke-linejoin="round">
                             <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z" />
@@ -227,7 +231,7 @@
 
                 <div class="gauge-area">
                     <div class="gauge-container">
-                        <svg class="gauge-svg" viewBox="0 0 100 100">
+                        <svg class="gauge-svg" viewBox="0 0 100 100" aria-hidden="true">
                             <circle class="gauge-track" cx="50" cy="50" r="42"></circle>
                             <circle class="gauge-fill" id="tempFill" cx="50" cy="50" r="42"></circle>
                         </svg>
@@ -253,9 +257,9 @@
             </section>
 
             <!-- Air Hum Card -->
-            <section class="card" data-type="airHum" id="airHumCard">
+            <section class="card" data-type="airHum" id="airHumCard" role="button" tabindex="0" aria-label="空气湿度传感器卡片，点击查看历史趋势分析">
                 <div class="card-header">
-                    <div class="sensor-icon">
+                    <div class="sensor-icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
                             stroke-linecap="round" stroke-linejoin="round">
                             <path
@@ -270,7 +274,7 @@
 
                 <div class="gauge-area">
                     <div class="gauge-container">
-                        <svg class="gauge-svg" viewBox="0 0 100 100">
+                        <svg class="gauge-svg" viewBox="0 0 100 100" aria-hidden="true">
                             <circle class="gauge-track" cx="50" cy="50" r="42"></circle>
                             <circle class="gauge-fill" id="airHumFill" cx="50" cy="50" r="42"></circle>
                         </svg>
@@ -298,14 +302,15 @@
 
         <!-- Command Console Logs Terminal -->
         <article class="log-panel-wrapper">
-            <div class="log-header" id="logHeader" title="点击展开/折叠控制台面板">
+            <div class="log-header" id="logHeader" role="button" tabindex="0" aria-label="运行日志终端面板，点击展开或收起" title="点击展开/折叠控制台面板">
                 <div class="log-header-left">
-                    <span class="log-arrow" id="logArrow">▼</span>
-                    <span>📋</span>
+                    <span class="log-arrow" id="logArrow" aria-hidden="true">▼</span>
+                    <span aria-hidden="true">📋</span>
                     <span>运行日志终端 (System Console)</span>
                     <span class="log-count pulse" id="logCount" title="当前记录条数">0</span>
                 </div>
                 <div class="log-header-right">
+                    <label for="logLevelFilter" class="sr-only">过滤日志级别</label>
                     <select id="logLevelFilter" onclick="event.stopPropagation()">
                         <option value="all">全部级别 (All)</option>
                         <option value="info">🟢 监测数据 (Info)</option>
@@ -313,74 +318,100 @@
                         <option value="error">🔴 异常报错 (Error)</option>
                     </select>
                     <button class="log-btn" id="exportLogBtn" title="无损导出终端日志流"
-                        onclick="exportLogs(); event.stopPropagation()">📥 导出日志</button>
+                        onclick="exportLogs(); event.stopPropagation()">
+                        <span aria-hidden="true">📥</span> 导出日志
+                    </button>
                     <button class="log-btn log-btn-danger" id="clearLogBtn" title="清空终端视图"
-                        onclick="clearLogs(); event.stopPropagation()">🗑️ 清空</button>
+                        onclick="clearLogs(); event.stopPropagation()">
+                        <span aria-hidden="true">🗑️</span> 清空
+                    </button>
                 </div>
             </div>
             <div class="log-terminal" id="logTerminal">
-                <div class="log-entry log-info"><span class="log-time">[系统初始化]</span> <span
-                        class="log-msg">日志模块已就绪，正在侦听数据流 (SSE)...</span></div>
+                <div class="log-entry log-info">
+                    <span class="log-time" aria-label="日志时间">[系统初始化]</span>
+                    <span class="log-msg">日志模块已就绪，正在侦听数据流 (SSE)…</span>
+                </div>
             </div>
         </article>
 
         <!-- Footer Information -->
         <footer class="footer-wrapper">
-            <div class="footer">🌿 数据来自数据库，每5秒自动刷新 | 点击卡片查看趋势</div>
+            <div class="footer">🌿 数据来自数据库，每 5 秒自动刷新 | 点击卡片查看趋势</div>
         </footer>
     </div>
 
     <!-- Trend Analysis Modal -->
-    <div id="chartModal" class="modal">
+    <div id="chartModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
         <div class="modal-content">
             <div class="modal-header">
-                <h2><span id="modalIcon">📊</span> <span id="modalTitle">历史趋势分析</span></h2>
+                <h2>
+                    <span id="modalIcon" aria-hidden="true">📊</span>
+                    <span id="modalTitle">历史趋势分析</span>
+                </h2>
                 <div class="modal-header-actions">
-                    <button class="export-btn" id="exportCsvBtn" title="导出所选指标的 CSV 数据">📥 导出所选指标</button>
-                    <button class="close-btn" id="closeModalBtn" title="关闭窗口">&times;</button>
+                    <button class="export-btn" id="exportCsvBtn" title="导出所选指标的 CSV 数据">
+                        <span aria-hidden="true">📥</span> 导出所选指标
+                    </button>
+                    <button class="close-btn" id="closeModalBtn" title="关闭窗口" aria-label="关闭窗口">&times;</button>
                 </div>
             </div>
+
             <div class="modal-body">
                 <div class="chart-controls">
                     <!-- Metrics Selector checkboxes -->
                     <div class="ctrl-group">
-                        <label>📌 监测指标 (最多2个)：</label>
-                        <div class="metric-checkboxes" id="metricCheckboxes">
-                            <label><input type="checkbox" value="ph" data-name="pH值"> pH值</label>
-                            <label><input type="checkbox" value="co2" data-name="CO2"> CO₂浓度</label>
-                            <label><input type="checkbox" value="soil_humi" data-name="土壤湿度"> 土壤湿度</label>
-                            <label><input type="checkbox" value="light" data-name="光照"> 光照强度</label>
-                            <label><input type="checkbox" value="temp" data-name="空气温度"> 空气温度</label>
-                            <label><input type="checkbox" value="air_humi" data-name="空气湿度"> 空气湿度</label>
+                        <span class="control-label" id="checkbox-group-label">📌 监测指标 (最多 2 个)：</span>
+                        <div class="metric-checkboxes" id="metricCheckboxes" role="group" aria-labelledby="checkbox-group-label">
+                            <label for="cb-ph">
+                                <input type="checkbox" id="cb-ph" name="metrics" value="ph" data-name="pH值"> pH值
+                            </label>
+                            <label for="cb-co2">
+                                <input type="checkbox" id="cb-co2" name="metrics" value="co2" data-name="CO2"> CO₂浓度
+                            </label>
+                            <label for="cb-soil_humi">
+                                <input type="checkbox" id="cb-soil_humi" name="metrics" value="soil_humi" data-name="土壤湿度"> 土壤湿度
+                            </label>
+                            <label for="cb-light">
+                                <input type="checkbox" id="cb-light" name="metrics" value="light" data-name="光照"> 光照强度
+                            </label>
+                            <label for="cb-temp">
+                                <input type="checkbox" id="cb-temp" name="metrics" value="temp" data-name="空气温度"> 空气温度
+                            </label>
+                            <label for="cb-air_humi">
+                                <input type="checkbox" id="cb-air_humi" name="metrics" value="air_humi" data-name="空气湿度"> 空气湿度
+                            </label>
                         </div>
                     </div>
 
                     <!-- Preset Time Selector -->
                     <div class="ctrl-group">
-                        <label>📅 时间跨度：</label>
-                        <select id="modalTimeUnit">
+                        <label for="modalTimeUnit">📅 时间跨度：</label>
+                        <select id="modalTimeUnit" name="time_unit">
                             <option value="live" selected>实时动态 (近 5 分钟)</option>
                             <option value="hour">历史快照: 近 24 小时</option>
                             <option value="day">历史快照: 近 7 天</option>
                             <option value="week">历史快照: 近 8 周</option>
                             <option value="month">历史快照: 近 12 个月</option>
                             <option value="year">历史快照: 近 5 年</option>
-                            <option value="custom">自定义时段...</option>
+                            <option value="custom">自定义时段…</option>
                         </select>
                     </div>
 
                     <!-- Custom Range (Hidden by default) -->
                     <div class="ctrl-group custom-date-group" id="customDateGroup" style="display: none;">
-                        <input type="datetime-local" id="customStartDate">
-                        <span>至</span>
-                        <input type="datetime-local" id="customEndDate">
+                        <label for="customStartDate" class="sr-only">开始时间</label>
+                        <input type="datetime-local" id="customStartDate" name="start_date" autocomplete="off">
+                        <span aria-hidden="true">至</span>
+                        <label for="customEndDate" class="sr-only">结束时间</label>
+                        <input type="datetime-local" id="customEndDate" name="end_date" autocomplete="off">
                         <button class="apply-btn" id="applyCustomDateBtn">查询</button>
                     </div>
 
                     <!-- Chart display style -->
                     <div class="ctrl-group">
-                        <label>📊 展现形式：</label>
-                        <select id="modalChartType">
+                        <label for="modalChartType">📊 展现形式：</label>
+                        <select id="modalChartType" name="chart_type">
                             <option value="line">折线趋势图</option>
                             <option value="bar">柱状统计图</option>
                         </select>
@@ -394,7 +425,7 @@
     </div>
 
     <!-- Dynamic Toast Notification Container -->
-    <div id="toastContainer" class="toast-container"></div>
+    <div id="toastContainer" class="toast-container" aria-live="polite"></div>
 
     <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 </body>

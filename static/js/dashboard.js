@@ -43,7 +43,9 @@ function showToast(title, message, type='alert') {
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
     
-    const icon = type === 'alert' ? '🔴' : '🟡';
+    let icon = '🟢';
+    if (type === 'alert') icon = '🔴';
+    else if (type === 'warning') icon = '🟡';
     
     toast.innerHTML = `
         <div class="toast-icon">${icon}</div>
@@ -257,13 +259,23 @@ function manualRefresh() {
     setTimeout(() => btn.innerHTML = orig, 1000);
 }
 
-// ---------- 实时时钟同步 ----------
+// ---------- 实时时钟同步 (采用规范 Intl.DateTimeFormat) ----------
+const clockFormatter = new Intl.DateTimeFormat('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+});
+
 function updateClock() {
     const d = new Date();
-    document.getElementById('liveClock').innerText = `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;
+    document.getElementById('liveClock').innerText = clockFormatter.format(d).replace(/\//g, '/');
 }
 
-// ---------- 模态框 Chart.js 核心美化配置 ----------
+// ---------- 模态框 Chart.js 核心配置 ----------
 let currentChart = null;
 
 const fieldMapping = {
@@ -276,12 +288,12 @@ const fieldMapping = {
 };
 
 const paramConfig = {
-    ph: { name: '土壤 pH 值', unit: '', icon: '🧪', yLabel: 'pH值', color: '#9333ea' },
+    ph: { name: '土壤 pH 值', unit: '', icon: '🧪', yLabel: 'pH值', color: '#a855f7' },
     co2: { name: 'CO₂ 浓度', unit: 'ppm', icon: '💨', yLabel: '浓度 (ppm)', color: '#10b981' },
-    soil_humi: { name: '土壤湿度', unit: '%', icon: '💧', yLabel: '相对湿度 (%)', color: '#2563eb' },
-    light: { name: '光照强度', unit: 'lux', icon: '☀️', yLabel: '光照 (lux)', color: '#d97706' },
-    temp: { name: '空气温度', unit: '°C', icon: '🌡️', yLabel: '温度 (°C)', color: '#dc2626' },
-    air_humi: { name: '空气湿度', unit: '%', icon: '🌧️', yLabel: '相对湿度 (%)', color: '#0891b2' }
+    soil_humi: { name: '土壤湿度', unit: '%', icon: '💧', yLabel: '相对湿度 (%)', color: '#3b82f6' },
+    light: { name: '光照强度', unit: 'lux', icon: '☀️', yLabel: '光照 (lux)', color: '#f59e0b' },
+    temp: { name: '空气温度', unit: '°C', icon: '🌡️', yLabel: '温度 (°C)', color: '#ef4444' },
+    air_humi: { name: '空气湿度', unit: '%', icon: '🌧️', yLabel: '相对湿度 (%)', color: '#06b6d4' }
 };
 
 function getSelectedMetrics() {
@@ -311,7 +323,7 @@ async function renderChartFromAPI() {
         const start = document.getElementById('customStartDate').value;
         const end = document.getElementById('customEndDate').value;
         if (!start) {
-            alert("请选择开始时间");
+            showToast("⚠️ 输入失效", "请在时间跨度中选择完整的开始时间与日期", "warning");
             return;
         }
         url += `&start=${start}`;
@@ -368,16 +380,16 @@ async function renderChartFromAPI() {
                 title: { 
                     display: true, 
                     text: cfg.yLabel,
-                    color: '#3b5c43',
+                    color: '#a3b8cc',
                     font: { family: "'Plus Jakarta Sans', sans-serif", weight: '700', size: 11 }
                 },
                 ticks: {
-                    color: '#5a7d62',
+                    color: '#64748b',
                     font: { family: "'Plus Jakarta Sans', sans-serif", size: 10, weight: '600' }
                 },
                 grid: { 
                     drawOnChartArea: index === 0,
-                    color: 'rgba(0, 0, 0, 0.035)'
+                    color: 'rgba(255, 255, 255, 0.03)'
                 }
             };
         });
@@ -395,7 +407,7 @@ async function renderChartFromAPI() {
                     legend: { 
                         position: 'top',
                         labels: {
-                            color: '#1f3b25',
+                            color: '#a3b8cc',
                             font: { family: "'Plus Jakarta Sans', sans-serif", size: 12, weight: '700' },
                             usePointStyle: true,
                             pointStyle: 'circle',
@@ -403,10 +415,10 @@ async function renderChartFromAPI() {
                         }
                     },
                     tooltip: {
-                        backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                        titleColor: '#1f3b25',
-                        bodyColor: '#1f3b25',
-                        borderColor: 'rgba(0, 0, 0, 0.06)',
+                        backgroundColor: 'rgba(15, 32, 22, 0.95)',
+                        titleColor: '#ffffff',
+                        bodyColor: '#e2e8f0',
+                        borderColor: 'rgba(255, 255, 255, 0.08)',
                         borderWidth: 1,
                         cornerRadius: 12,
                         padding: 12,
@@ -415,21 +427,21 @@ async function renderChartFromAPI() {
                         boxWidth: 8,
                         boxHeight: 8,
                         usePointStyle: true,
-                        shadowColor: 'rgba(74, 94, 79, 0.08)',
+                        shadowColor: 'rgba(0, 0, 0, 0.4)',
                         shadowBlur: 10
                     }
                 },
                 scales: {
                     x: {
                         ticks: {
-                            color: '#5a7d62',
+                            color: '#64748b',
                             font: { family: "'Plus Jakarta Sans', sans-serif", size: 10, weight: '600' },
-                            maxTicksLimit: 10, // 限制最大刻度数量，避免文字重叠拥挤
+                            maxTicksLimit: 10,
                             maxRotation: 0,
                             minRotation: 0
                         },
                         grid: {
-                            color: 'rgba(0, 0, 0, 0.02)'
+                            color: 'rgba(255, 255, 255, 0.02)'
                         }
                     },
                     ...yAxes
@@ -442,7 +454,7 @@ async function renderChartFromAPI() {
         if (currentChart) currentChart.destroy();
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.font = '14px sans-serif';
-        ctx.fillStyle = 'red';
+        ctx.fillStyle = '#ef4444';
         ctx.fillText('无法加载历史数据，请检查服务连接', 20, 50);
     }
 }
@@ -483,7 +495,10 @@ function handleCheckboxLimit() {
 
 function exportCsv() {
     const selectedFields = getSelectedMetrics();
-    if (selectedFields.length === 0) return alert("请先选择指标");
+    if (selectedFields.length === 0) {
+        showToast("⚠️ 导出失败", "请先在指标列表中勾选至少一个环境监测项", "warning");
+        return;
+    }
     
     const timeUnit = document.getElementById('modalTimeUnit').value;
     let url = `/api/export?params=${selectedFields.join(',')}`;
@@ -491,7 +506,10 @@ function exportCsv() {
     if (timeUnit === 'custom') {
         const start = document.getElementById('customStartDate').value;
         const end = document.getElementById('customEndDate').value;
-        if (!start) return alert("请选择开始时间");
+        if (!start) {
+            showToast("⚠️ 导出失败", "自定义导出时段必须选择开始的日期时间", "warning");
+            return;
+        }
         url += `&start=${start}`;
         if (end) url += `&end=${end}`;
     } else {
@@ -526,11 +544,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const evtSource = new EventSource('/api/stream');
     
     evtSource.onopen = function() {
-        if(typeof addLog === 'function') addLog('已成功连接到服务器实时数据流 (SSE).', 'info');
+        if(typeof addLog === 'function') addLog('已成功连接到服务器实时数据流 (SSE)。', 'info');
     };
     
     evtSource.onerror = function() {
-        if(typeof addLog === 'function') addLog('网络连接已断开，正在尝试重新连接...', 'error');
+        if(typeof addLog === 'function') addLog('网络连接已断开，正在尝试重新连接…', 'error');
     };
 
     evtSource.onmessage = function(event) {
@@ -539,12 +557,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if(typeof addLog === 'function') addLog(`收到传感器数据: 空温 ${data.temp}°C | 空湿 ${data.air_humi}% | 土湿 ${data.soil_humi}% | 光照 ${data.light}lx | CO2 ${data.co2}ppm | pH ${data.ph}`, 'info');
             updateUI(data);
             
-            // 收到最新传感数据的同时，不再频繁向后端接口刷屏请求 stats，改为轻量级定时刷新和手动刷新
-            
             // 如果图表正在显示，且处于“实时”模式，流式更新图表
             const timeUnit = document.getElementById('modalTimeUnit').value;
             if (document.getElementById('chartModal').style.display === 'flex' && currentChart && timeUnit === 'live') {
-                // 从服务器推送的 ISO 时间字符串中提取 24 小时制的时间，保证与后端 API 格式统一
                 let timeStr = '';
                 if (data.time) {
                     try {
@@ -559,12 +574,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     timeStr = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}:${String(d.getSeconds()).padStart(2, '0')}`;
                 }
 
-                // 检查是否是图表中的最后一个时间点，防止因 SSE 事件和 REST 请求近乎同时发生导致重复画点
                 const lastLabel = currentChart.data.labels[currentChart.data.labels.length - 1];
                 const selectedFields = getSelectedMetrics();
                 
                 if (lastLabel === timeStr) {
-                    // 如果时间戳完全相同，只更新最后一点的值，不新增点
                     selectedFields.forEach((field, index) => {
                         const val = data[field];
                         if (currentChart.data.datasets[index]) {
@@ -572,7 +585,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                     });
                 } else {
-                    // 否则，正常添加新数据点
                     currentChart.data.labels.push(timeStr);
                     selectedFields.forEach((field, index) => {
                         const val = data[field];
@@ -594,21 +606,27 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
     evtSource.onerror = function(err) {
-        console.error("SSE 连接出错，浏览器会自动尝试重连", err);
+        console.error("SSE 连接出错，浏览器会自动尝试重连…", err);
     };
 
     setInterval(updateClock, 1000);
-    // 定时每 30 秒拉取一次 24 小时聚合统计数据，保证数据同步的同时防止数据库高频请求过载
     setInterval(fetchStats, 30000);
     document.getElementById('manualRefreshBtn').addEventListener('click', manualRefresh);
     document.getElementById('exportAllCsvBtn').addEventListener('click', exportAllCsv);
     updateClock();
 
-    // 绑定卡片点击
+    // 绑定卡片点击与键盘触发，全面增强键盘可访问性
     document.querySelectorAll('.card').forEach(card => {
-        card.addEventListener('click', (e) => {
+        const handler = (e) => {
             const type = card.getAttribute('data-type');
             if (type) openModal(type);
+        };
+        card.addEventListener('click', handler);
+        card.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handler(e);
+            }
         });
     });
 
@@ -658,17 +676,27 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-document.getElementById('logHeader')?.addEventListener('click', () => {
-    const wrapper = document.querySelector('.log-panel-wrapper');
-    if(wrapper) wrapper.classList.toggle('collapsed');
-});
+// 日志头部折叠键盘可访问性绑定
+const logHeader = document.getElementById('logHeader');
+if (logHeader) {
+    const toggleLogs = () => {
+        const wrapper = document.querySelector('.log-panel-wrapper');
+        if(wrapper) wrapper.classList.toggle('collapsed');
+    };
+    logHeader.addEventListener('click', toggleLogs);
+    logHeader.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            toggleLogs();
+        }
+    });
+}
 
 function addLog(message, level='info') {
     const timeStr = new Date().toLocaleTimeString('zh-CN', {hour12: false});
     const logObj = { time: timeStr, message, level };
     systemLogs.push(logObj);
     
-    // 最多保留 1000 条
     if (systemLogs.length > 1000) systemLogs.shift();
     
     const countEl = document.getElementById('logCount');
@@ -695,7 +723,6 @@ function renderLog(log) {
     entry.innerHTML = `<span class="log-time">[${log.time}]</span> <span class="log-msg">${prefix} ${log.message}</span>`;
     terminal.appendChild(entry);
     
-    // 自动滚动到底部
     terminal.scrollTop = terminal.scrollHeight;
 }
 
@@ -716,7 +743,10 @@ document.getElementById('logLevelFilter')?.addEventListener('change', () => {
 });
 
 function exportLogs() {
-    if (systemLogs.length === 0) return alert('当前终端没有可用日志日志可供导出');
+    if (systemLogs.length === 0) {
+        showToast("⚠️ 导出失败", "当前日志终端暂无任何数据记录可供导出", "warning");
+        return;
+    }
     let content = "=== Intelligent Farm System Console Logs ===\n";
     content += `导出时间: ${new Date().toLocaleString('zh-CN')}\n\n`;
     
