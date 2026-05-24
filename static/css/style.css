@@ -1124,23 +1124,294 @@ body {
     background: rgba(255, 255, 255, 0.3);
 }
 
+/* ==================== 移动端与平板响应式深度适配 ==================== */
 @media (max-width: 768px) {
+    body {
+        padding: 1rem 0.75rem;
+    }
+
+    .ambient-glow {
+        filter: blur(80px); /* 减弱模糊半径以提升移动端 GPU 渲染性能 */
+        opacity: 0.2;
+    }
+
+    /* 头部组件自适应 */
     .header {
         flex-direction: column;
-        align-items: flex-start;
+        align-items: stretch;
         padding: 1.25rem;
+        border-radius: 1.25rem;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
     }
+
+    .header-left {
+        align-items: center;
+        text-align: center;
+    }
+
+    .title {
+        font-size: 1.8rem;
+        gap: 8px;
+    }
+
+    .sub {
+        font-size: 0.85rem;
+        margin-top: 2px;
+    }
+
     .header-meta {
+        justify-content: center;
         width: 100%;
+        gap: 8px;
+    }
+
+    .live-time {
+        width: 100%;
+        text-align: center;
+        font-size: 0.85rem;
+        padding: 0.4rem 1rem;
+    }
+
+    .refresh-btn {
+        flex: 1;
+        justify-content: center;
+        font-size: 0.8rem;
+        padding: 0.5rem 1rem;
+    }
+
+    /* 数据网格自适应 */
+    .grid {
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.25rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .card {
+        padding: 1.25rem;
+        border-radius: 1.25rem;
+    }
+
+    .card-header {
+        margin-bottom: 0.25rem;
+    }
+
+    .card-header h3 {
+        font-size: 1.15rem;
+    }
+
+    .gauge-area {
+        margin: 0.25rem 0;
+    }
+
+    .gauge-container {
+        width: 150px;
+        height: 150px;
+    }
+
+    .gauge-container .value {
+        font-size: 2.4rem;
+    }
+
+    .gauge-container .unit {
+        font-size: 0.8rem;
+    }
+
+    .daily-stats {
+        gap: 6px;
+        margin-top: 0.8rem;
+    }
+
+    .stat-pill {
+        padding: 4px 2px;
+        border-radius: 10px;
+    }
+
+    .stat-pill .stat-label {
+        font-size: 0.65rem;
+    }
+
+    .stat-pill .stat-val {
+        font-size: 0.85rem;
+    }
+
+    /* 运行日志终端自适应 */
+    .log-panel-wrapper {
+        border-radius: 1.25rem;
+        margin: 1.5rem 0;
+    }
+
+    .log-header {
+        padding: 0.85rem 1.25rem;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .log-header-left {
+        font-size: 1.05rem;
         justify-content: space-between;
     }
+
+    .log-header-right {
+        justify-content: space-between;
+        width: 100%;
+        gap: 8px;
+    }
+
+    .log-header-right select {
+        flex: 1.2;
+        padding: 0.4rem 0.6rem;
+        font-size: 0.8rem;
+        border-radius: 10px;
+    }
+
+    .log-btn {
+        flex: 1;
+        padding: 0.4rem 0.6rem;
+        font-size: 0.8rem;
+        border-radius: 10px;
+        justify-content: center;
+        display: inline-flex;
+    }
+
+    .log-terminal {
+        height: 200px;
+        max-height: 200px;
+        padding: 0.85rem 1rem;
+        font-size: 0.75rem;
+    }
+
+    /* 弹出 Toast 警报自适应 */
+    .toast-container {
+        top: auto;
+        bottom: 20px;
+        left: 5%;
+        right: 5%;
+        width: 90%;
+    }
+
+    .toast {
+        min-width: auto;
+        width: 100%;
+        padding: 0.85rem 1.25rem;
+        border-radius: 1rem;
+    }
+
+    /* 历史趋势模态框自适应 */
+    .modal {
+        padding: 0.5rem;
+    }
+
     .modal-content {
-        width: 98%;
+        max-width: 100%;
+        border-radius: 1.5rem;
     }
+
+    .modal-header {
+        padding: 1rem 1.25rem;
+    }
+
+    .modal-header h2 {
+        font-size: 1.2rem;
+    }
+
+    .modal-body {
+        padding: 1rem;
+    }
+
+    .chart-controls {
+        padding: 0.85rem;
+        border-radius: 1.25rem;
+        gap: 1rem;
+    }
+
+    .chart-controls .ctrl-group {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .chart-controls .ctrl-group label {
+        min-width: auto;
+        font-size: 0.8rem;
+    }
+
+    /* 允许复选框在手机端横向滑动，防止把屏幕水平撑开 */
+    .metric-checkboxes {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        width: 100%;
+        padding-bottom: 8px;
+        gap: 6px;
+    }
+
+    .metric-checkboxes label {
+        white-space: nowrap;
+        padding: 0.35rem 0.85rem;
+        font-size: 0.78rem;
+    }
+
+    /* 自定义日期选择器适配 */
+    .custom-date-group {
+        flex-direction: column;
+        align-items: stretch;
+        width: 100%;
+        border-radius: 1.25rem !important;
+        padding: 0.75rem !important;
+    }
+
+    .custom-date-group input {
+        width: 100%;
+        text-align: center;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        padding: 4px 0;
+    }
+
+    .custom-date-group span {
+        text-align: center;
+        font-size: 0.8rem;
+        color: #5a7d62;
+    }
+
     .chart-container {
-        height: 280px;
+        height: 250px;
+        border-radius: 1.25rem;
+        padding: 0.5rem;
     }
-    .value {
-        font-size: 2.8rem;
+
+    /* 页脚自适应 */
+    .footer {
+        padding: 0.6rem 1.5rem;
+        font-size: 0.75rem;
+        line-height: 1.4;
+        border-radius: 999px;
+    }
+}
+
+/* 针对小屏手机（如 iPhone SE 等）的超极简微调 */
+@media (max-width: 480px) {
+    .header-meta {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .refresh-btn {
+        width: 100%;
+    }
+
+    .gauge-container {
+        width: 135px;
+        height: 135px;
+    }
+
+    .gauge-container .value {
+        font-size: 2.1rem;
+    }
+
+    .log-header-right {
+        flex-direction: column;
+        align-items: stretch;
     }
 }
