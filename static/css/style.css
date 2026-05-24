@@ -112,8 +112,8 @@ body {
 
 .brand-title {
     font-family: var(--font-display);
-    font-size: 1.85rem;
-    font-weight: 700;
+    font-size: 1.45rem;
+    font-weight: 800;
     letter-spacing: -0.5px;
     background: linear-gradient(135deg, #34d399, #059669);
     -webkit-background-clip: text;
