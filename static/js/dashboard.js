@@ -300,6 +300,179 @@ function getSelectedMetrics() {
     return Array.from(checkboxes).map(cb => cb.value);
 }
 
+// ---------- Widescreen Crosshair Plugin with Hover Acrylic Card ----------
+const widescreenCrosshair = {
+    id: 'widescreenCrosshair',
+    afterEvent(chart, args) {
+        const { event } = args;
+        const isMouseMove = event.type === 'mousemove';
+        const isMouseLeave = event.type === 'mouseout' || event.type === 'mouseleave';
+
+        if (isMouseMove) {
+            chart.crosshair = {
+                x: event.x,
+                y: event.y,
+                active: true
+            };
+            chart.draw();
+        } else if (isMouseLeave) {
+            chart.crosshair = {
+                x: null,
+                y: null,
+                active: false
+            };
+            chart.draw();
+        }
+    },
+    afterDraw(chart) {
+        if (!chart.crosshair || !chart.crosshair.active || chart.crosshair.x === null) {
+            return;
+        }
+
+        const { ctx, chartArea: { top, bottom, left, right }, scales } = chart;
+        const { x, y } = chart.crosshair;
+
+        // Only draw inside the actual chart plot area
+        if (x < left || x > right || y < top || y > bottom) return;
+
+        ctx.save();
+
+        const isLight = document.body.classList.contains('light-theme');
+
+        // 1. Get corresponding X scale index and time label
+        const xScale = scales.x;
+        const xIndex = xScale.getValueForPixel(x);
+
+        if (xIndex === undefined || xIndex < 0 || xIndex >= chart.data.labels.length) {
+            ctx.restore();
+            return;
+        }
+
+        const timeLabel = chart.data.labels[xIndex];
+        const snappedX = xScale.getPixelForValue(xIndex);
+
+        // 2. Draw vertical and horizontal dashed crosshairs
+        ctx.strokeStyle = isLight ? 'rgba(71, 85, 105, 0.35)' : 'rgba(148, 163, 184, 0.35)';
+        ctx.lineWidth = 1.2;
+        ctx.setLineDash([5, 5]);
+
+        // Vertical dashed line snapped to data point column
+        ctx.beginPath();
+        ctx.moveTo(snappedX, top);
+        ctx.lineTo(snappedX, bottom);
+        ctx.stroke();
+
+        // Horizontal dashed line matching cursor's Y value
+        ctx.beginPath();
+        ctx.moveTo(left, y);
+        ctx.lineTo(right, y);
+        ctx.stroke();
+
+        // 3. Collect active sensor reading values for Y-axis information
+        const points = [];
+        chart.data.datasets.forEach((dataset) => {
+            const val = dataset.data[xIndex];
+            if (val !== undefined && val !== null) {
+                const yScale = scales[dataset.yAxisID || 'y'];
+                const yPixel = yScale.getPixelForValue(val);
+                points.push({
+                    label: dataset.label,
+                    value: val,
+                    color: dataset.borderColor || '#10b981',
+                    yPixel: yPixel
+                });
+            }
+        });
+
+        // 4. Highlight points on curves with glowing circle indicators
+        ctx.setLineDash([]); // solid lines
+        points.forEach(pt => {
+            ctx.fillStyle = pt.color;
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(snappedX, pt.yPixel, 6, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.stroke();
+        });
+
+        if (points.length === 0) {
+            ctx.restore();
+            return;
+        }
+
+        // 5. Draw the beautiful floating glassmorphic tooltip card
+        const tooltipWidth = 190;
+        const lineHeight = 22;
+        const padding = 12;
+        const headerHeight = 24;
+        const tooltipHeight = headerHeight + (points.length * lineHeight) + padding * 2;
+
+        // Auto position card safely within chart area
+        let tooltipX = x + 15;
+        let tooltipY = y - tooltipHeight / 2;
+
+        if (tooltipX + tooltipWidth > right) {
+            tooltipX = x - tooltipWidth - 15;
+        }
+        if (tooltipY < top) {
+            tooltipY = top + 5;
+        }
+        if (tooltipY + tooltipHeight > bottom) {
+            tooltipY = bottom - tooltipHeight - 5;
+        }
+
+        // Card styling: acrylic translucent look
+        ctx.fillStyle = isLight ? 'rgba(255, 255, 255, 0.96)' : 'rgba(8, 20, 13, 0.96)';
+        ctx.strokeStyle = isLight ? '#cbd5e1' : 'rgba(16, 185, 129, 0.3)';
+        ctx.lineWidth = 1.5;
+        
+        ctx.beginPath();
+        if (ctx.roundRect) {
+            ctx.roundRect(tooltipX, tooltipY, tooltipWidth, tooltipHeight, 10);
+        } else {
+            ctx.rect(tooltipX, tooltipY, tooltipWidth, tooltipHeight);
+        }
+        ctx.fill();
+        ctx.stroke();
+
+        // Time axis header
+        ctx.font = "bold 11px 'Outfit', sans-serif";
+        ctx.fillStyle = isLight ? '#475569' : '#34d399';
+        ctx.fillText(`🕒 时间: ${timeLabel}`, tooltipX + padding, tooltipY + padding + 10);
+
+        // Divider
+        ctx.strokeStyle = isLight ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.08)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(tooltipX + padding, tooltipY + padding + 16);
+        ctx.lineTo(tooltipX + tooltipWidth - padding, tooltipY + padding + 16);
+        ctx.stroke();
+
+        // Display dataset metrics and values
+        let currentY = tooltipY + padding + headerHeight + 8;
+        points.forEach(pt => {
+            // Visual indicator dot
+            ctx.fillStyle = pt.color;
+            ctx.beginPath();
+            ctx.arc(tooltipX + padding + 5, currentY + 4, 3.5, 0, 2 * Math.PI);
+            ctx.fill();
+
+            // Label and Value text
+            ctx.font = "600 11px 'Plus Jakarta Sans', sans-serif";
+            ctx.fillStyle = isLight ? '#334155' : '#e2e8f0';
+            
+            const displayName = pt.label.split(' ')[0];
+            const text = `${displayName}: ${pt.value}`;
+            ctx.fillText(text, tooltipX + padding + 14, currentY + 8);
+
+            currentY += lineHeight;
+        });
+
+        ctx.restore();
+    }
+};
+
 async function renderChartFromAPI() {
     const canvas = document.getElementById('modalChartCanvas');
     if (!canvas) return;
@@ -422,20 +595,7 @@ async function renderChartFromAPI() {
                         }
                     },
                     tooltip: {
-                        backgroundColor: tooltipBg,
-                        titleColor: tooltipTitle,
-                        bodyColor: tooltipBody,
-                        borderColor: tooltipBorder,
-                        borderWidth: 1,
-                        cornerRadius: 12,
-                        padding: 12,
-                        titleFont: { family: "'Outfit', sans-serif", weight: '700', size: 13 },
-                        bodyFont: { family: "'Plus Jakarta Sans', sans-serif", size: 12, weight: '600' },
-                        boxWidth: 8,
-                        boxHeight: 8,
-                        usePointStyle: true,
-                        shadowColor: 'rgba(0, 0, 0, 0.4)',
-                        shadowBlur: 10
+                        enabled: false // Disable default tooltip in favor of widescreen custom crosshair box
                     }
                 },
                 scales: {
@@ -454,7 +614,8 @@ async function renderChartFromAPI() {
                     ...yAxes
                 },
                 animation: { duration: 0 }
-            }
+            },
+            plugins: [widescreenCrosshair]
         });
     } catch (err) {
         console.error('渲染趋势图出错:', err);
