@@ -7,7 +7,7 @@
     <title>Agri Monitor — 智慧农业监测系统</title>
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=1.2.1">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=1.2.2">
 </head>
 
 <body>
@@ -60,6 +60,9 @@
                 </button>
                 <button class="action-btn action-secondary" id="exportAllCsvBtn" title="一键导出所有历史环境参数为 CSV">
                     <span aria-hidden="true">📥</span> 导出所有数据
+                </button>
+                <button class="action-btn action-secondary" id="openLogModalBtn" title="打开系统运行日志终端窗口">
+                    <span aria-hidden="true">📋</span> 运行日志 <span class="log-badge-count" id="logBadgeCount">0</span>
                 </button>
             </div>
 
@@ -330,38 +333,7 @@
                 </section>
             </div>
 
-            <!-- Integrated CRT Terminal Console (Collapsible) -->
-            <article class="log-panel-wrapper" role="region" aria-label="控制台日志模块">
-                <div class="log-header" id="logHeader" role="button" tabindex="0" aria-label="运行日志控制台终端，点击展开或折叠面板" title="点击展开/折叠控制台面板">
-                    <div class="log-header-left">
-                        <span class="log-arrow" id="logArrow" aria-hidden="true">▼</span>
-                        <span aria-hidden="true">📋</span>
-                        <span>系统控制台终端 (System Console Logs)</span>
-                        <span class="log-count pulse" id="logCount" title="当前记录条数">0</span>
-                    </div>
-                    <div class="log-header-right">
-                        <label for="logLevelFilter" class="sr-only">过滤日志级别</label>
-                        <select id="logLevelFilter" onclick="event.stopPropagation()">
-                            <option value="all">所有级别 (All Logs)</option>
-                            <option value="info">🟢 数据监控 (Info)</option>
-                            <option value="warn">🟡 系统警告 (Warn)</option>
-                            <option value="error">🔴 异常告警 (Error)</option>
-                        </select>
-                        <button class="log-btn" id="exportLogBtn" title="无损导出终端日志流" onclick="exportLogs(); event.stopPropagation()">
-                            <span aria-hidden="true">📥</span> 导出日志
-                        </button>
-                        <button class="log-btn log-btn-danger" id="clearLogBtn" title="清空终端视图" onclick="clearLogs(); event.stopPropagation()">
-                            <span aria-hidden="true">🗑️</span> 清空终端
-                        </button>
-                    </div>
-                </div>
-                <div class="log-terminal" id="logTerminal">
-                    <div class="log-entry log-info">
-                        <span class="log-time" aria-label="日志时间">[系统连接]</span>
-                        <span class="log-msg" translate="no">System live shell initialized. Listening to SSE SSE streams…</span>
-                    </div>
-                </div>
-            </article>
+
 
             <!-- Bottom Footer Area -->
             <footer class="main-footer-area">
@@ -453,10 +425,47 @@
         </div>
     </div>
 
+    <!-- Running Logs Terminal Modal -->
+    <div id="logModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="logModalTitle">
+        <div class="modal-content log-modal-content">
+            <div class="modal-header">
+                <h2>
+                    <span id="logModalIcon" aria-hidden="true">📋</span>
+                    <span id="logModalTitle">系统运行日志控制台 (System Console)</span>
+                </h2>
+                <div class="modal-header-actions">
+                    <label for="logLevelFilter" class="sr-only">过滤日志级别</label>
+                    <select id="logLevelFilter" class="log-select">
+                        <option value="all">所有日志级别 (All Logs)</option>
+                        <option value="info">🟢 数据监控 (Info)</option>
+                        <option value="warn">🟡 系统警告 (Warn)</option>
+                        <option value="error">🔴 异常告警 (Error)</option>
+                    </select>
+                    <button class="log-btn" id="exportLogBtn" title="无损导出终端日志流">
+                        <span aria-hidden="true">📥</span> 导出日志
+                    </button>
+                    <button class="log-btn log-btn-danger" id="clearLogBtn" title="清空终端视图">
+                        <span aria-hidden="true">🗑️</span> 清空
+                    </button>
+                    <button class="close-btn" id="closeLogModalBtn" title="关闭窗口" aria-label="关闭窗口">&times;</button>
+                </div>
+            </div>
+
+            <div class="modal-body log-modal-body">
+                <div class="log-terminal" id="logTerminal" role="log" aria-live="polite">
+                    <div class="log-entry log-info">
+                        <span class="log-time" aria-label="日志时间">[系统连接]</span>
+                        <span class="log-msg" translate="no">System live shell initialized. Listening to SSE streams…</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Live Toast Area -->
     <div id="toastContainer" class="toast-container" aria-live="polite"></div>
 
-    <script src="{{ url_for('static', filename='js/dashboard.js') }}?v=1.2.1"></script>
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}?v=1.2.2"></script>
 </body>
 
 </html>

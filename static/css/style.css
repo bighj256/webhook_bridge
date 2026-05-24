@@ -794,81 +794,33 @@ body {
 .fill-warning { stroke: #fbbf24 !important; }
 .fill-alert { stroke: #f87171 !important; }
 
-/* ==================== SYSTEM TERMINAL LOGS ==================== */
-.log-panel-wrapper {
-    background: var(--bg-card);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border-radius: 1.75rem;
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    box-shadow: 0 16px 40px -10px rgba(0, 0, 0, 0.4);
-    margin: 0.5rem 0 2rem 0;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.log-header {
-    padding: 1rem 1.75rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 12px;
-    background: rgba(255, 255, 255, 0.01);
-    cursor: pointer;
-    user-select: none;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-}
-
-.log-header-left {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-family: var(--font-display);
-    font-size: 1.15rem;
-    font-weight: 800;
-    color: #ffffff;
-}
-
-.log-arrow {
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    font-size: 0.8rem;
-    color: var(--text-secondary);
-}
-
-.log-panel-wrapper.collapsed .log-arrow {
-    transform: rotate(-90deg);
-}
-
-.log-count {
+/* ==================== SYSTEM TERMINAL LOGS MODAL & BADGE ==================== */
+.log-badge-count {
     background: var(--theme-green);
     color: #030805;
-    padding: 2px 8px;
+    padding: 2px 7px;
     border-radius: 9999px;
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     font-weight: 800;
-    font-family: var(--font-display);
+    margin-left: 6px;
+    font-variant-numeric: tabular-nums;
+    box-shadow: 0 0 6px var(--theme-green-glow);
+    display: inline-block;
+    vertical-align: middle;
 }
 
-.pulse {
-    animation: logBadgePulse 2s infinite;
+.log-modal-content {
+    max-width: 960px;
+    background: rgba(4, 10, 6, 0.95);
+    border: 1px solid rgba(16, 185, 129, 0.15);
+    box-shadow: 0 0 40px rgba(16, 185, 129, 0.1);
 }
 
-@keyframes logBadgePulse {
-    0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
-    70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+.log-modal-body {
+    padding: 1.25rem;
 }
 
-.log-header-right {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-}
-
-.log-header-right select {
+.log-select {
     padding: 0.45rem 1rem;
     border: 1px solid rgba(255, 255, 255, 0.08);
     background: rgba(8, 20, 13, 0.9);
@@ -881,7 +833,7 @@ body {
     transition: all 0.2s ease;
 }
 
-.log-header-right select:hover {
+.log-select:hover {
     border-color: var(--theme-green);
 }
 
@@ -915,17 +867,17 @@ body {
 
 /* CRT CRT Overlay effect Terminal */
 .log-terminal {
-    background: #020704;
+    background: #020603;
+    border: 1px solid rgba(16, 185, 129, 0.08);
+    border-radius: 1rem;
     padding: 1.25rem 1.75rem;
-    height: 220px;
-    max-height: 220px;
+    height: 460px;
+    max-height: 480px;
     overflow-y: auto;
     font-family: var(--font-mono);
-    font-size: 0.8rem;
+    font-size: 0.82rem;
     line-height: 1.6;
     scroll-behavior: smooth;
-    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-    border-top: 1px solid rgba(255, 255, 255, 0.02);
     position: relative;
 }
 
@@ -942,16 +894,8 @@ body {
     opacity: 0.22;
 }
 
-.log-panel-wrapper.collapsed .log-terminal {
-    max-height: 0;
-    height: 0;
-    padding-top: 0;
-    padding-bottom: 0;
-    opacity: 0;
-}
-
 .log-entry {
-    margin-bottom: 5px;
+    margin-bottom: 6px;
     word-wrap: break-word;
     position: relative;
     z-index: 2;

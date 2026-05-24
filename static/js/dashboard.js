@@ -651,35 +651,82 @@ function saveLogs() {
     localStorage.setItem('systemLogs', JSON.stringify(systemLogs));
 }
 
+function updateLogCounts() {
+    const total = systemLogs.length;
+    
+    const badgeEl = document.getElementById('logBadgeCount');
+    if (badgeEl) badgeEl.innerText = total;
+    
+    const countEl = document.getElementById('logCount');
+    if (countEl) countEl.innerText = total;
+    
+    // 更新顶栏告警数
+    const errCount = systemLogs.filter(l => l.level === 'error').length;
+    const glanceErr = document.getElementById('glanceErrorCount');
+    if (glanceErr) glanceErr.innerText = `${errCount} 条`;
+}
+
+function openLogModal() {
+    const modal = document.getElementById('logModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        // 自动聚焦到关闭按钮
+        document.getElementById('closeLogModalBtn')?.focus();
+        
+        // 滚动到终端最底部
+        const terminal = document.getElementById('logTerminal');
+        if (terminal) {
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+    }
+}
+
+function closeLogModal() {
+    const modal = document.getElementById('logModal');
+    if (modal) modal.style.display = 'none';
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     try {
         const saved = localStorage.getItem('systemLogs');
         if (saved) {
             systemLogs = JSON.parse(saved);
-            const countEl = document.getElementById('logCount');
-            if (countEl) countEl.innerText = systemLogs.length;
+            updateLogCounts();
+            
+            // 清空默认内容，重新渲染加载的所有日志
+            const terminal = document.getElementById('logTerminal');
+            if (terminal) terminal.innerHTML = '';
             systemLogs.forEach(renderLog);
         }
     } catch (e) {
         console.error('加载本地运行日志出错', e);
     }
-});
 
-// 绑定日志终端折叠键盘可访问性
-const logHeader = document.getElementById('logHeader');
-if (logHeader) {
-    const toggleLogs = () => {
-        const wrapper = document.querySelector('.log-panel-wrapper');
-        if (wrapper) wrapper.classList.toggle('collapsed');
-    };
-    logHeader.addEventListener('click', toggleLogs);
-    logHeader.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            toggleLogs();
+    // 绑定侧边栏按钮和关闭按钮
+    document.getElementById('openLogModalBtn')?.addEventListener('click', openLogModal);
+    document.getElementById('closeLogModalBtn')?.addEventListener('click', closeLogModal);
+    
+    window.addEventListener('click', (e) => {
+        const modal = document.getElementById('logModal');
+        if (e.target === modal) closeLogModal();
+    });
+
+    // 键盘 Esc 关闭支持
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeLogModal();
         }
     });
-}
+
+    document.getElementById('exportLogBtn')?.addEventListener('click', exportLogs);
+    document.getElementById('clearLogBtn')?.addEventListener('click', clearLogs);
+    
+    document.getElementById('logLevelFilter')?.addEventListener('change', () => {
+        const terminal = document.getElementById('logTerminal');
+        if (terminal) terminal.innerHTML = '';
+        systemLogs.forEach(renderLog);
+    });
+});
 
 const logTimeFormatter = new Intl.DateTimeFormat('zh-CN', {
     hour: '2-digit',
@@ -695,13 +742,7 @@ function addLog(message, level='info') {
     
     if (systemLogs.length > 1000) systemLogs.shift();
     
-    const countEl = document.getElementById('logCount');
-    if (countEl) countEl.innerText = systemLogs.length;
-    
-    // 更新顶栏告警数
-    const errCount = systemLogs.filter(l => l.level === 'error').length;
-    document.getElementById('glanceErrorCount').innerText = `${errCount} 条`;
-    
+    updateLogCounts();
     renderLog(logObj);
     saveLogs();
 }
@@ -730,18 +771,10 @@ function clearLogs() {
     systemLogs = [];
     const terminal = document.getElementById('logTerminal');
     if (terminal) terminal.innerHTML = '';
-    const countEl = document.getElementById('logCount');
-    if (countEl) countEl.innerText = '0';
-    document.getElementById('glanceErrorCount').innerText = '0 条';
+    updateLogCounts();
     saveLogs();
     addLog('运行终端已成功重置并就绪', 'info');
 }
-
-document.getElementById('logLevelFilter')?.addEventListener('change', () => {
-    const terminal = document.getElementById('logTerminal');
-    if (terminal) terminal.innerHTML = '';
-    systemLogs.forEach(renderLog);
-});
 
 function exportLogs() {
     if (systemLogs.length === 0) {
