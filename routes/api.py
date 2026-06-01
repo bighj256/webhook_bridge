@@ -275,15 +275,18 @@ def trend_data():
             
             rows.reverse()
             labels = []
+            full_labels = []
             datasets = {f: [] for f in fields}
             for row in rows:
                 t = row[0]
-                labels.append(t.strftime('%H:%M:%S'))
+                time_str = t.strftime('%Y-%m-%d %H:%M')
+                labels.append(time_str)
+                full_labels.append(time_str)
                 for idx, f in enumerate(fields):
                     val = row[idx + 1]
                     datasets[f].append(round(float(val), 2) if val is not None else None)
             
-            return jsonify({'labels': labels, 'datasets': datasets})
+            return jsonify({'labels': labels, 'full_labels': full_labels, 'datasets': datasets})
         except Exception as e:
             log_error(f"Error in /trend live: {e}")
             return jsonify({'error': str(e)}), 500
@@ -428,31 +431,12 @@ def trend_data():
             padded_rows = [(make_naive(r[0]), *r[1:]) for r in rows if r[0]]
 
         labels = []
-        full_labels = [b[0].strftime('%Y-%m-%d %H:%M:%S') for b in padded_rows]
+        full_labels = [b[0].strftime('%Y-%m-%d %H:%M') for b in padded_rows]
         datasets = {f: [] for f in fields}
         
         for row in padded_rows:
             bucket = row[0]
-            if unit in ['30m', '1h']:
-                labels.append(bucket.strftime('%H:%M:%S'))
-            elif unit in ['6h', '12h', 'hour']:
-                labels.append(bucket.strftime('%H:%M'))
-            elif unit == 'day':
-                labels.append(bucket.strftime('%m-%d %H:%M'))
-            elif unit == 'week':
-                labels.append(f"W{bucket.isocalendar()[1]}")
-            elif unit == 'month':
-                labels.append(bucket.strftime('%Y-%m'))
-            elif unit == 'year':
-                labels.append(bucket.strftime('%Y'))
-            else:
-                # Custom query formatting based on custom grain
-                if grain == 'day':
-                    labels.append(bucket.strftime('%m-%d'))
-                elif grain == 'hour':
-                    labels.append(bucket.strftime('%m-%d %H:00'))
-                else:
-                    labels.append(bucket.strftime('%H:%M'))
+            labels.append(bucket.strftime('%Y-%m-%d %H:%M'))
                 
             for idx, f in enumerate(fields):
                 val = row[idx + 1]

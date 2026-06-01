@@ -733,15 +733,23 @@ document.addEventListener('DOMContentLoaded', () => {
             const timeUnit = document.getElementById('modalTimeUnit').value;
             if (document.getElementById('chartModal').style.display === 'flex' && currentChart && timeUnit === 'live') {
                 let timeStr = '';
+                const formatTime = (dateObj) => {
+                    const year = dateObj.getFullYear();
+                    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+                    const day = String(dateObj.getDate()).padStart(2, '0');
+                    const hh = String(dateObj.getHours()).padStart(2, '0');
+                    const mm = String(dateObj.getMinutes()).padStart(2, '0');
+                    return `${year}-${month}-${day} ${hh}:${mm}`;
+                };
+
                 if (data.time) {
                     try {
                         const sseTime = new Date(data.time);
-                        timeStr = `${String(sseTime.getHours()).padStart(2, '0')}:${String(sseTime.getMinutes()).padStart(2, '0')}:${String(sseTime.getSeconds()).padStart(2, '0')}`;
+                        timeStr = formatTime(sseTime);
                     } catch (e) { }
                 }
                 if (!timeStr) {
-                    const d = new Date();
-                    timeStr = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}:${String(d.getSeconds()).padStart(2, '0')}`;
+                    timeStr = formatTime(new Date());
                 }
 
                 const lastLabel = currentChart.data.labels[currentChart.data.labels.length - 1];
@@ -756,6 +764,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
                 } else {
                     currentChart.data.labels.push(timeStr);
+                    if (currentChart.data.fullLabels) {
+                        currentChart.data.fullLabels.push(timeStr);
+                    }
                     selectedFields.forEach((field, index) => {
                         const val = data[field];
                         if (currentChart.data.datasets[index]) {
@@ -766,6 +777,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (currentChart.data.labels.length > 60) {
                     currentChart.data.labels.shift();
+                    if (currentChart.data.fullLabels) {
+                        currentChart.data.fullLabels.shift();
+                    }
                     currentChart.data.datasets.forEach(dataset => dataset.data.shift());
                 }
                 currentChart.update();
