@@ -79,6 +79,10 @@
                 </div>
                 <div class="summary-glance-row">
                     <div class="glance-pill">
+                        <span class="pill-label">当前用户</span>
+                        <span class="pill-val val-green">{{ username or 'Guest' }}</span>
+                    </div>
+                    <div class="glance-pill">
                         <span class="pill-label">系统健康度</span>
                         <span class="pill-val val-green">100%</span>
                     </div>
@@ -90,6 +94,9 @@
                         <span class="pill-label">上报频率</span>
                         <span class="pill-val">~5.0s</span>
                     </div>
+                    <button id="logoutBtn" class="logout-btn" title="退出登录">
+                        <span aria-hidden="true">📤</span> 退出登录
+                    </button>
                     <!-- Premium Dynamic Theme Toggle -->
                     <button id="themeToggleBtn" class="theme-toggle-btn" aria-label="切换浅色与深色主题" title="切换浅色与深色主题">
                         <svg class="theme-toggle-svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
@@ -528,6 +535,26 @@
 
     <!-- Live Toast Area -->
     <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+    <script>
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            try {
+                const response = await fetch('/auth/logout', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                const data = await response.json();
+                if (data.code === 0) {
+                    window.location.href = '/auth/login_page';
+                }
+            } catch (error) {
+                console.error('Logout failed:', error);
+                window.location.href = '/auth/login_page';
+            }
+        });
+    </script>
 
     <script src="{{ url_for('static', filename='js/dashboard.js') }}?v=1.2.6"></script>
 </body>

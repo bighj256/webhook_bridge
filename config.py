@@ -11,3 +11,5 @@ DB_CONFIG = {
 }
 
 LOG_FILE_PATH = os.getenv("LOG_FILE_PATH", os.path.join(os.path.dirname(__file__), "logs", "webhook.log"))
+
+SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key-change-in-production")

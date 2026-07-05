@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智慧农业监测系统 - 注册</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="auth-page">
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-brand">
+                <h1>🌾 智慧农业监测系统</h1>
+                <p>智能农场全环境监测平台</p>
+            </div>
+            
+            <div class="auth-form">
+                <h2>用户注册</h2>
+                
+                <div class="form-group">
+                    <label for="username">用户名</label>
+                    <input type="text" id="username" placeholder="3-20个字符" autocomplete="username">
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">密码</label>
+                    <input type="password" id="password" placeholder="至少6位" autocomplete="new-password">
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirmPassword">确认密码</label>
+                    <input type="password" id="confirmPassword" placeholder="请再次输入密码" autocomplete="new-password">
+                </div>
+                
+                <div class="form-group captcha-group">
+                    <label for="captcha">验证码</label>
+                    <div class="captcha-row">
+                        <input type="text" id="captcha" placeholder="请输入验证码" maxlength="4">
+                        <img id="captchaImage" src="{{ url_for('auth.captcha') }}?t=0" alt="验证码" onclick="refreshCaptcha()">
+                        <button type="button" class="captcha-refresh" onclick="refreshCaptcha()" title="刷新验证码">↻</button>
+                    </div>
+                </div>
+                
+                <button class="auth-btn" id="registerBtn">注 册</button>
+                
+                <div class="auth-links">
+                    <span>已有账号？</span>
+                    <a href="{{ url_for('auth.login_page') }}">立即登录</a>
+                </div>
+            </div>
+            
+            <div class="auth-footer">
+                <p>智慧农业监测系统 v1.2.6</p>
+            </div>
+        </div>
+        
+        <div class="auth-bg-decoration"></div>
+    </div>
+    
+    <div id="toastContainer" class="toast-container"></div>
+    
+    <script>
+        function refreshCaptcha() {
+            const img = document.getElementById('captchaImage');
+            img.src = "{{ url_for('auth.captcha') }}" + "?t=" + Date.now();
+            document.getElementById('captcha').value = '';
+        }
+        
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            
+            let icon = 'ℹ️';
+            if (type === 'success') icon = '✅';
+            if (type === 'warning') icon = '⚠️';
+            if (type === 'alert') icon = '❌';
+            
+            toast.innerHTML = `
+                <div class="toast-icon">${icon}</div>
+                <div class="toast-content">
+                    <div class="toast-title">${type === 'success' ? '成功' : type === 'alert' ? '错误' : '提示'}</div>
+                    <div class="toast-desc">${message}</div>
+                </div>
+            `;
+            
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.add('hiding');
+                setTimeout(() => {
+                    toast.remove();
+                }, 400);
+            }, 3000);
+        }
+        
+        document.getElementById('registerBtn').addEventListener('click', async () => {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const confirmPassword = document.getElementById('confirmPassword').value.trim();
+            const captcha = document.getElementById('captcha').value.trim();
+            
+            if (!username || !password) {
+                showToast('用户名和密码不能为空', 'warning');
+                return;
+            }
+            
+            if (username.length < 3 || username.length > 20) {
+                showToast('用户名长度需在3-20字符之间', 'warning');
+                return;
+            }
+            
+            if (password.length < 6) {
+                showToast('密码长度至少6位', 'warning');
+                return;
+            }
+            
+            if (password !== confirmPassword) {
+                showToast('两次输入的密码不一致', 'warning');
+                return;
+            }
+            
+            if (!captcha) {
+                showToast('请输入验证码', 'warning');
+                return;
+            }
+            
+            try {
+                const response = await fetch('{{ url_for('auth.register') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password, captcha })
+                });
+                
+                const data = await response.json();
+                
+                if (data.code === 0) {
+                    showToast('注册成功，正在跳转...', 'success');
+                    setTimeout(() => {
+                        window.location.href = '{{ url_for('views.dashboard') }}';
+                    }, 1000);
+                } else {
+                    showToast(data.message, 'alert');
+                    refreshCaptcha();
+                }
+            } catch (error) {
+                showToast('网络错误，请稍后重试', 'alert');
+            }
+        });
+        
+        document.getElementById('captcha').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('registerBtn').click();
+            }
+        });
+        
+        document.getElementById('confirmPassword').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('registerBtn').click();
+            }
+        });
+    </script>
+</body>
+</html>
