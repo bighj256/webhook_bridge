@@ -21,36 +21,70 @@ def generate_captcha():
     生成随机验证码图片
     返回: (验证码字符串, 图片字节流)
     """
-    width, height = 120, 40
-    chars = string.ascii_letters + string.digits
+    width, height = 180, 60
+    chars = string.ascii_uppercase + string.digits
     captcha_text = ''.join(random.choices(chars, k=4))
     
-    image = Image.new('RGB', (width, height), (255, 255, 255))
+    image = Image.new('RGB', (width, height), (245, 245, 245))
     draw = ImageDraw.Draw(image)
     
-    try:
-        font = ImageFont.truetype('arial.ttf', 32)
-    except:
+    font_paths = [
+        'arial.ttf',
+        'arialbd.ttf',
+        'times.ttf',
+        'timesbd.ttf',
+        'C:\\Windows\\Fonts\\arial.ttf',
+        'C:\\Windows\\Fonts\\arialbd.ttf',
+        '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf',
+        '/usr/share/fonts/truetype/freefont/FreeSansBold.ttf'
+    ]
+    
+    font = None
+    for font_path in font_paths:
+        try:
+            font = ImageFont.truetype(font_path, 42)
+            break
+        except:
+            continue
+    
+    if font is None:
         font = ImageFont.load_default()
     
-    for i, char in enumerate(captcha_text):
-        x = 15 + i * 25
-        y = random.randint(2, 8)
-        angle = random.randint(-15, 15)
-        char_image = Image.new('RGBA', (25, 40), (0, 0, 0, 0))
-        char_draw = ImageDraw.Draw(char_image)
-        char_draw.text((0, 0), char, font=font, fill=(0, 0, 0))
-        char_image = char_image.rotate(angle, expand=True)
-        image.paste(char_image, (x, y), char_image)
+    colors = [
+        (30, 30, 30),
+        (50, 50, 50),
+        (70, 70, 70),
+        (90, 90, 90),
+        (110, 110, 110)
+    ]
     
-    for _ in range(15):
+    char_width = 40
+    start_x = (width - char_width * 4) // 2
+    
+    for i, char in enumerate(captcha_text):
+        x = start_x + i * char_width + random.randint(-5, 5)
+        y = random.randint(5, 12)
+        angle = random.randint(-10, 10)
+        color = random.choice(colors)
+        
+        char_image = Image.new('RGBA', (50, 60), (0, 0, 0, 0))
+        char_draw = ImageDraw.Draw(char_image)
+        char_draw.text((0, 0), char, font=font, fill=color)
+        char_image = char_image.rotate(angle, expand=True)
+        
+        paste_x = x - char_image.width // 2 + 25
+        paste_y = y
+        image.paste(char_image, (paste_x, paste_y), char_image)
+    
+    for _ in range(8):
         x1, y1 = random.randint(0, width), random.randint(0, height)
         x2, y2 = random.randint(0, width), random.randint(0, height)
-        draw.line((x1, y1, x2, y2), fill=(128, 128, 128), width=1)
+        draw.line((x1, y1, x2, y2), fill=(180, 180, 180), width=1)
     
-    for _ in range(30):
+    for _ in range(40):
         x, y = random.randint(0, width), random.randint(0, height)
-        draw.point((x, y), fill=(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)))
+        gray = random.randint(160, 220)
+        draw.point((x, y), fill=(gray, gray, gray))
     
     buf = io.BytesIO()
     image.save(buf, format='PNG')

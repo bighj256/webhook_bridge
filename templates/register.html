@@ -60,107 +60,11 @@
     <div id="toastContainer" class="toast-container"></div>
     
     <script>
-        function refreshCaptcha() {
-            const img = document.getElementById('captchaImage');
-            img.src = "{{ url_for('auth.captcha') }}" + "?t=" + Date.now();
-            document.getElementById('captcha').value = '';
-        }
-        
-        function showToast(message, type = 'info') {
-            const container = document.getElementById('toastContainer');
-            const toast = document.createElement('div');
-            toast.className = `toast toast-${type}`;
-            
-            let icon = 'ℹ️';
-            if (type === 'success') icon = '✅';
-            if (type === 'warning') icon = '⚠️';
-            if (type === 'alert') icon = '❌';
-            
-            toast.innerHTML = `
-                <div class="toast-icon">${icon}</div>
-                <div class="toast-content">
-                    <div class="toast-title">${type === 'success' ? '成功' : type === 'alert' ? '错误' : '提示'}</div>
-                    <div class="toast-desc">${message}</div>
-                </div>
-            `;
-            
-            container.appendChild(toast);
-            
-            setTimeout(() => {
-                toast.classList.add('hiding');
-                setTimeout(() => {
-                    toast.remove();
-                }, 400);
-            }, 3000);
-        }
-        
-        document.getElementById('registerBtn').addEventListener('click', async () => {
-            const username = document.getElementById('username').value.trim();
-            const password = document.getElementById('password').value.trim();
-            const confirmPassword = document.getElementById('confirmPassword').value.trim();
-            const captcha = document.getElementById('captcha').value.trim();
-            
-            if (!username || !password) {
-                showToast('用户名和密码不能为空', 'warning');
-                return;
-            }
-            
-            if (username.length < 3 || username.length > 20) {
-                showToast('用户名长度需在3-20字符之间', 'warning');
-                return;
-            }
-            
-            if (password.length < 6) {
-                showToast('密码长度至少6位', 'warning');
-                return;
-            }
-            
-            if (password !== confirmPassword) {
-                showToast('两次输入的密码不一致', 'warning');
-                return;
-            }
-            
-            if (!captcha) {
-                showToast('请输入验证码', 'warning');
-                return;
-            }
-            
-            try {
-                const response = await fetch('{{ url_for('auth.register') }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ username, password, captcha })
-                });
-                
-                const data = await response.json();
-                
-                if (data.code === 0) {
-                    showToast('注册成功，正在跳转...', 'success');
-                    setTimeout(() => {
-                        window.location.href = '{{ url_for('views.dashboard') }}';
-                    }, 1000);
-                } else {
-                    showToast(data.message, 'alert');
-                    refreshCaptcha();
-                }
-            } catch (error) {
-                showToast('网络错误，请稍后重试', 'alert');
-            }
-        });
-        
-        document.getElementById('captcha').addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                document.getElementById('registerBtn').click();
-            }
-        });
-        
-        document.getElementById('confirmPassword').addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                document.getElementById('registerBtn').click();
-            }
-        });
+        window.captchaUrl = "{{ url_for('auth.captcha') }}";
+        window.registerUrl = "{{ url_for('auth.register') }}";
+        window.dashboardUrl = "{{ url_for('views.dashboard') }}";
     </script>
+    <script src="{{ url_for('static', filename='js/utils.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/register.js') }}"></script>
 </body>
 </html>
