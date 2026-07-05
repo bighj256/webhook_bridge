@@ -19,6 +19,7 @@ def register_middleware(app):
 
     @app.before_request
     def before_request():
+        print(f"[DEBUG] request.path = {request.path}")
         allowed_paths = [
             '/',
             '/auth/login',
@@ -33,6 +34,9 @@ def register_middleware(app):
         
         path = request.path
         session.permanent = True
+
+        if path in allowed_paths:
+                return
         
         if path.startswith('/api/') or path == '/dashboard':
             if 'user_id' not in session:
