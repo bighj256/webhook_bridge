@@ -2044,6 +2044,7 @@ body.auth-page::before {
     border-radius: 50%;
     filter: blur(60px);
     animation: bgPulse 4s infinite ease-in-out;
+    pointer-events: none;
 }
 
 @keyframes bgPulse {
