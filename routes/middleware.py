@@ -27,6 +27,7 @@ def register_middleware(app):
             '/auth/status',
             '/auth/login_page',
             '/auth/register_page',
+            '/api/sensor_data',
             '/health'
         ]
         
