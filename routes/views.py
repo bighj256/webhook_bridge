@@ -1,5 +1,5 @@
 """
-视图路由模块
+views视图路由模块
 负责页面渲染和健康检查等非 API 路由
 """
 from flask import Blueprint, render_template, jsonify, redirect, url_for, session

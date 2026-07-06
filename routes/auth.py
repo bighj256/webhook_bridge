@@ -329,3 +329,164 @@ def login_required(f):
         return f(*args, **kwargs)
     
     return decorated_function
+
+
+# ==============================================================================
+# 路由: GET /auth/profile
+# 功能: 获取当前用户信息
+# ==============================================================================
+@auth_bp.route('/profile', methods=['GET'])
+@login_required
+def get_profile():
+    """
+    获取当前登录用户的信息
+    返回:
+        200: {"code": 0, "data": {"user_id": int, "username": str}}
+    """
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT id, username FROM users WHERE id = %s", (session['user_id'],))
+        row = cur.fetchone()
+        cur.close()
+        conn.close()
+        
+        if row:
+            user_id, username = row
+            return jsonify({
+                "code": 0,
+                "data": {
+                    "user_id": user_id,
+                    "username": username
+                }
+            })
+        return jsonify({"code": 404, "message": "用户不存在"}), 404
+    
+    except Exception as e:
+        log_error(f"Get profile error: {e}")
+        return jsonify({"code": 500, "message": "服务器内部错误"}), 500
+
+
+# ==============================================================================
+# 路由: PUT /auth/profile
+# 功能: 修改用户名
+# ==============================================================================
+@auth_bp.route('/profile', methods=['PUT'])
+@login_required
+def update_profile():
+    """
+    修改当前用户的用户名
+    参数:
+        new_username: 新用户名
+    返回:
+        200: {"code": 0, "message": "success"}
+        400: {"code": 400, "message": "..."}
+    """
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"code": 400, "message": "No JSON data"}), 400
+        
+        new_username = data.get('new_username')
+        
+        if not new_username:
+            return jsonify({"code": 400, "message": "新用户名不能为空"}), 400
+        
+        if len(new_username) < 3 or len(new_username) > 20:
+            return jsonify({"code": 400, "message": "用户名长度需在3-20字符之间"}), 400
+        
+        conn = get_db_connection()
+        cur = conn.cursor()
+        
+        cur.execute("SELECT id FROM users WHERE username = %s", (new_username,))
+        if cur.fetchone():
+            cur.close()
+            conn.close()
+            return jsonify({"code": 400, "message": "用户名已存在"}), 400
+        
+        cur.execute(
+            "UPDATE users SET username = %s WHERE id = %s",
+            (new_username, session['user_id'])
+        )
+        conn.commit()
+        cur.close()
+        conn.close()
+        
+        session['username'] = new_username
+        log_info(f"User {session['user_id']} updated username to {new_username}")
+        
+        return jsonify({"code": 0, "message": "success"}), 200
+    
+    except Exception as e:
+        log_error(f"Update profile error: {e}")
+        return jsonify({"code": 500, "message": "服务器内部错误"}), 500
+
+
+# ==============================================================================
+# 路由: PUT /auth/password
+# 功能: 修改密码
+# ==============================================================================
+@auth_bp.route('/password', methods=['PUT'])
+@login_required
+def update_password():
+    """
+    修改当前用户的密码
+    参数:
+        old_password: 原密码
+        new_password: 新密码
+        confirm_password: 确认新密码
+    返回:
+        200: {"code": 0, "message": "success"}
+        400: {"code": 400, "message": "..."}
+    """
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"code": 400, "message": "No JSON data"}), 400
+        
+        old_password = data.get('old_password')
+        new_password = data.get('new_password')
+        confirm_password = data.get('confirm_password')
+        
+        if not old_password or not new_password:
+            return jsonify({"code": 400, "message": "原密码和新密码不能为空"}), 400
+        
+        if new_password != confirm_password:
+            return jsonify({"code": 400, "message": "两次输入的新密码不一致"}), 400
+        
+        if len(new_password) < 6:
+            return jsonify({"code": 400, "message": "新密码长度至少6位"}), 400
+        
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT password_hash FROM users WHERE id = %s", (session['user_id'],))
+        row = cur.fetchone()
+        cur.close()
+        conn.close()
+        
+        if not row:
+            return jsonify({"code": 404, "message": "用户不存在"}), 404
+        
+        password_hash = row[0]
+        if not check_password_hash(password_hash, old_password):
+            return jsonify({"code": 400, "message": "原密码错误"}), 400
+        
+        new_password_hash = generate_password_hash(new_password)
+        
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute(
+            "UPDATE users SET password_hash = %s WHERE id = %s",
+            (new_password_hash, session['user_id'])
+        )
+        conn.commit()
+        cur.close()
+        conn.close()
+        
+        log_info(f"User {session['username']} updated password")
+        
+        return jsonify({"code": 0, "message": "success"}), 200
+    
+    except Exception as e:
+        log_error(f"Update password error: {e}")
+        return jsonify({"code": 500, "message": "服务器内部错误"}), 500

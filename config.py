@@ -13,3 +13,10 @@ DB_CONFIG = {
 LOG_FILE_PATH = os.getenv("LOG_FILE_PATH", os.path.join(os.path.dirname(__file__), "logs", "webhook.log"))
 
 SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key-change-in-production")
+
+AI_CONFIG = {
+    "api_key": os.getenv("AI_API_KEY", ""),
+    "model_name": os.getenv("AI_MODEL_NAME", "glm-4.7-flash"),
+    "api_base_url": os.getenv("AI_API_BASE_URL", "https://open.bigmodel.cn/api/paas/v4"),
+    "timeout": int(os.getenv("AI_TIMEOUT", "30"))
+}

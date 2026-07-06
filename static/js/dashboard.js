@@ -1018,3 +1018,321 @@ function exportLogs() {
     a.click();
     URL.revokeObjectURL(url);
 }
+
+// ---------- 用户设置模态框逻辑 ----------
+let currentUserProfile = null;
+
+async function fetchUserProfile() {
+    try {
+        const response = await fetch('/auth/profile');
+        if (!response.ok) throw new Error('获取用户信息失败');
+        const data = await response.json();
+        if (data.code === 0) {
+            currentUserProfile = data.data;
+            document.getElementById('currentUsername').value = data.data.username;
+        }
+    } catch (err) {
+        console.error('获取用户信息失败:', err);
+    }
+}
+
+function openSettingsModal() {
+    fetchUserProfile();
+    const modal = document.getElementById('settingsModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        document.getElementById('closeSettingsModalBtn')?.focus();
+    }
+}
+
+function closeSettingsModal() {
+    const modal = document.getElementById('settingsModal');
+    if (modal) modal.style.display = 'none';
+}
+
+function switchSettingsTab(tabName) {
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.settings-panel').forEach(panel => panel.classList.remove('active'));
+    
+    const btn = document.querySelector(`[data-tab="${tabName}"]`);
+    const panel = document.getElementById(`panel-${tabName}`);
+    
+    if (btn) btn.classList.add('active');
+    if (panel) panel.classList.add('active');
+}
+
+async function saveUsername() {
+    const newUsername = document.getElementById('newUsername').value.trim();
+    
+    if (!newUsername) {
+        showToast('⚠️ 修改失败', '请输入新用户名', 'warning');
+        return;
+    }
+    
+    if (newUsername.length < 3 || newUsername.length > 20) {
+        showToast('⚠️ 修改失败', '用户名长度需在3-20字符之间', 'warning');
+        return;
+    }
+    
+    if (newUsername === currentUserProfile?.username) {
+        showToast('⚠️ 修改失败', '新用户名与当前用户名相同', 'warning');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/auth/profile', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ new_username: newUsername })
+        });
+        
+        const data = await response.json();
+        
+        if (data.code === 0) {
+            showToast('✅ 修改成功', '用户名已更新', 'info');
+            currentUserProfile.username = newUsername;
+            document.getElementById('currentUsername').value = newUsername;
+            document.getElementById('newUsername').value = '';
+            
+            document.querySelector('.pill-val.val-green').innerText = newUsername;
+        } else {
+            showToast('⚠️ 修改失败', data.message, 'warning');
+        }
+    } catch (err) {
+        showToast('⚠️ 修改失败', '网络错误，请稍后重试', 'warning');
+    }
+}
+
+async function savePassword() {
+    const oldPassword = document.getElementById('oldPassword').value.trim();
+    const newPassword = document.getElementById('newPassword').value.trim();
+    const confirmPassword = document.getElementById('confirmPassword').value.trim();
+    
+    if (!oldPassword || !newPassword) {
+        showToast('⚠️ 修改失败', '原密码和新密码不能为空', 'warning');
+        return;
+    }
+    
+    if (newPassword !== confirmPassword) {
+        showToast('⚠️ 修改失败', '两次输入的新密码不一致', 'warning');
+        return;
+    }
+    
+    if (newPassword.length < 6) {
+        showToast('⚠️ 修改失败', '新密码长度至少6位', 'warning');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/auth/password', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                old_password: oldPassword,
+                new_password: newPassword,
+                confirm_password: confirmPassword
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.code === 0) {
+            showToast('✅ 修改成功', '密码已更新，请重新登录', 'info');
+            document.getElementById('oldPassword').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmPassword').value = '';
+            closeSettingsModal();
+        } else {
+            showToast('⚠️ 修改失败', data.message, 'warning');
+        }
+    } catch (err) {
+        showToast('⚠️ 修改失败', '网络错误，请稍后重试', 'warning');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('settingsBtn')?.addEventListener('click', openSettingsModal);
+    document.getElementById('closeSettingsModalBtn')?.addEventListener('click', closeSettingsModal);
+
+    window.addEventListener('click', (e) => {
+        const modal = document.getElementById('settingsModal');
+        if (e.target === modal) closeSettingsModal();
+    });
+
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeSettingsModal();
+        }
+    });
+
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            switchSettingsTab(btn.dataset.tab);
+        });
+    });
+
+    document.getElementById('saveUsernameBtn')?.addEventListener('click', saveUsername);
+    document.getElementById('savePasswordBtn')?.addEventListener('click', savePassword);
+});
+
+// ---------- AI 农事助手逻辑 ----------
+let aiChatHistory = [];
+let isAiLoading = false;
+
+async function checkAiStatus() {
+    try {
+        const response = await fetch('/api/ai/status');
+        if (!response.ok) throw new Error('获取 AI 状态失败');
+        const data = await response.json();
+        const statusDot = document.getElementById('aiStatusDot');
+        const statusText = document.getElementById('aiStatusText');
+        
+        if (data.code === 0 && data.data.configured) {
+            statusDot.classList.add('ai-status-online');
+            statusText.innerText = '已连接';
+        } else {
+            statusDot.classList.add('ai-status-offline');
+            statusText.innerText = '未配置';
+            addLog('AI 农事助手未配置 API Key，请在 .env 文件中设置', 'warn');
+        }
+    } catch (err) {
+        const statusDot = document.getElementById('aiStatusDot');
+        const statusText = document.getElementById('aiStatusText');
+        statusDot.classList.add('ai-status-offline');
+        statusText.innerText = '不可用';
+    }
+}
+
+function addAiMessage(content, isUser = false) {
+    const chatArea = document.getElementById('aiChatArea');
+    if (!chatArea) return;
+
+    const messageDiv = document.createElement('div');
+    messageDiv.className = isUser ? 'ai-message ai-user' : 'ai-message ai-assistant';
+
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'ai-message-content';
+
+    if (isUser) {
+        contentDiv.innerHTML = `<p>${content}</p>`;
+    } else {
+        contentDiv.innerHTML = content.replace(/\n/g, '<br>');
+    }
+
+    messageDiv.appendChild(contentDiv);
+    chatArea.appendChild(messageDiv);
+
+    chatArea.scrollTop = chatArea.scrollHeight;
+}
+
+function showAiLoading() {
+    isAiLoading = true;
+    const chatArea = document.getElementById('aiChatArea');
+    if (!chatArea) return;
+
+    const loadingDiv = document.createElement('div');
+    loadingDiv.className = 'ai-message ai-loading';
+    loadingDiv.id = 'aiLoading';
+    loadingDiv.innerHTML = `
+        <div class="ai-message-content">
+            <div class="ai-loading-dots">
+                <span class="dot"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+            </div>
+            <p>AI 正在分析数据...</p>
+        </div>
+    `;
+    chatArea.appendChild(loadingDiv);
+    chatArea.scrollTop = chatArea.scrollHeight;
+
+    const sendBtn = document.getElementById('aiSendBtn');
+    const quickBtn = document.getElementById('aiQuickAnalyzeBtn');
+    if (sendBtn) sendBtn.disabled = true;
+    if (quickBtn) quickBtn.disabled = true;
+}
+
+function hideAiLoading() {
+    isAiLoading = false;
+    const loadingDiv = document.getElementById('aiLoading');
+    if (loadingDiv) loadingDiv.remove();
+
+    const sendBtn = document.getElementById('aiSendBtn');
+    const quickBtn = document.getElementById('aiQuickAnalyzeBtn');
+    if (sendBtn) sendBtn.disabled = false;
+    if (quickBtn) quickBtn.disabled = false;
+}
+
+async function askAI(question = '') {
+    if (isAiLoading) return;
+
+    if (question.trim()) {
+        addAiMessage(question, true);
+        aiChatHistory.push({ role: 'user', content: question });
+    }
+
+    showAiLoading();
+
+    try {
+        const response = await fetch('/api/ai/ask', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                question: question.trim(),
+                history: aiChatHistory.slice(-3)
+            })
+        });
+
+        const data = await response.json();
+
+        hideAiLoading();
+
+        if (data.code === 0) {
+            const responseText = data.data.response;
+            addAiMessage(responseText);
+            aiChatHistory.push({ role: 'assistant', content: responseText });
+
+            if (aiChatHistory.length > 6) {
+                aiChatHistory = aiChatHistory.slice(-6);
+            }
+
+            addLog(`AI 农事助手回复: ${responseText.substring(0, 50)}...`, 'info');
+        } else {
+            showToast('⚠️ AI 请求失败', data.message, 'warning');
+            addLog(`AI 请求失败: ${data.message}`, 'error');
+        }
+    } catch (err) {
+        hideAiLoading();
+        showToast('⚠️ AI 请求失败', '网络错误，请稍后重试', 'warning');
+        addLog(`AI 请求异常: ${err}`, 'error');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    checkAiStatus();
+
+    document.getElementById('aiQuickAnalyzeBtn')?.addEventListener('click', () => {
+        askAI('');
+    });
+
+    document.getElementById('aiSendBtn')?.addEventListener('click', () => {
+        const input = document.getElementById('aiInput');
+        if (input && input.value.trim()) {
+            askAI(input.value.trim());
+            input.value = '';
+        }
+    });
+
+    document.getElementById('aiInput')?.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            document.getElementById('aiSendBtn')?.click();
+        }
+    });
+});
