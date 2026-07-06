@@ -64,35 +64,10 @@
                 </button>
             </div>
 
-            <div class="ai-assistant-panel">
-                <div class="ai-panel-header">
-                    <div class="ai-panel-title">
-                        <span aria-hidden="true">🤖</span> AI 农事助手
-                    </div>
-                    <div class="ai-panel-status" id="aiStatus">
-                        <span class="ai-status-dot" id="aiStatusDot"></span>
-                        <span class="ai-status-text" id="aiStatusText">检查中...</span>
-                    </div>
-                </div>
-                
-                <div class="ai-chat-area" id="aiChatArea" aria-live="polite">
-                    <div class="ai-message ai-system">
-                        <div class="ai-message-content">
-                            <p>您好！我是您的 AI 农事助手。点击下方按钮获取当前环境分析建议，或直接输入问题咨询。</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="ai-input-area">
-                    <button class="ai-quick-btn" id="aiQuickAnalyzeBtn" title="一键分析当前数据">
-                        <span aria-hidden="true">📊</span> 一键分析
-                    </button>
-                    <textarea id="aiInput" placeholder="输入您的问题，如：需要浇水吗？" rows="2"></textarea>
-                    <button class="ai-send-btn" id="aiSendBtn" title="发送咨询">
-                        <span aria-hidden="true">➤</span> 咨询
-                    </button>
-                </div>
-            </div>
+            <button class="action-btn action-secondary" id="openAiModalBtn" title="打开 AI 农事助手对话框">
+                <span aria-hidden="true">🤖</span> AI 农事助手
+                <span class="ai-status-dot-inline" id="aiStatusDotInline"></span>
+            </button>
 
             <div class="sidebar-footer">
                 <span translate="no">智慧农业监测系统 v1.2.6</span><br>
@@ -560,6 +535,47 @@
                         <span class="log-time" aria-label="日志时间">[系统连接]</span>
                         <span class="log-msg" translate="no">System live shell initialized. Listening to SSE
                             streams…</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Assistant Modal -->
+    <div id="aiModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="aiModalTitle">
+        <div class="modal-content log-modal-content ai-modal-content">
+            <div class="modal-header">
+                <h2>
+                    <span id="aiModalIcon" aria-hidden="true">🤖</span>
+                    <span id="aiModalTitle">AI 农事助手</span>
+                </h2>
+                <div class="modal-header-actions">
+                    <span class="ai-modal-status" id="aiStatus">
+                        <span class="ai-status-dot" id="aiStatusDot"></span>
+                        <span class="ai-status-text" id="aiStatusText">检查中...</span>
+                    </span>
+                    <button class="close-btn" id="closeAiModalBtn" title="关闭窗口" aria-label="关闭窗口">&times;</button>
+                </div>
+            </div>
+
+            <div class="modal-body ai-modal-body">
+                <div class="ai-chat-area-modal" id="aiChatArea" aria-live="polite">
+                    <div class="ai-message ai-system">
+                        <div class="ai-message-content">
+                            <p>您好！我是您的 AI 农事助手。点击下方「📊 一键分析」获取当前环境数据智能分析建议，或直接输入您的问题进行咨询。</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ai-input-area-modal">
+                    <button class="ai-quick-btn" id="aiQuickAnalyzeBtn" title="一键分析当前数据">
+                        <span aria-hidden="true">📊</span> 一键分析
+                    </button>
+                    <div class="ai-input-row">
+                        <textarea id="aiInput" placeholder="输入您的问题，如：需要浇水吗？" rows="2"></textarea>
+                        <button class="ai-send-btn" id="aiSendBtn" title="发送咨询">
+                            <span aria-hidden="true">➤</span> 咨询
+                        </button>
                     </div>
                 </div>
             </div>

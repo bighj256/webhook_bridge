@@ -904,6 +904,25 @@ function closeLogModal() {
     if (modal) modal.style.display = 'none';
 }
 
+function openAiModal() {
+    const modal = document.getElementById('aiModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        document.getElementById('closeAiModalBtn')?.focus();
+
+        // Scroll chat area to bottom
+        const chatArea = document.getElementById('aiChatArea');
+        if (chatArea) {
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+    }
+}
+
+function closeAiModal() {
+    const modal = document.getElementById('aiModal');
+    if (modal) modal.style.display = 'none';
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     try {
         const saved = localStorage.getItem('systemLogs');
@@ -933,6 +952,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             closeLogModal();
+            closeAiModal();
         }
     });
 
@@ -943,6 +963,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const terminal = document.getElementById('logTerminal');
         if (terminal) terminal.innerHTML = '';
         systemLogs.forEach(renderLog);
+    });
+
+    // AI 农事助手模态框事件绑定
+    document.getElementById('openAiModalBtn')?.addEventListener('click', openAiModal);
+    document.getElementById('closeAiModalBtn')?.addEventListener('click', closeAiModal);
+
+    window.addEventListener('click', (e) => {
+        const aiModal = document.getElementById('aiModal');
+        if (e.target === aiModal) closeAiModal();
     });
 });
 
@@ -1190,20 +1219,25 @@ async function checkAiStatus() {
         const data = await response.json();
         const statusDot = document.getElementById('aiStatusDot');
         const statusText = document.getElementById('aiStatusText');
-        
+        const inlineDot = document.getElementById('aiStatusDotInline');
+
         if (data.code === 0 && data.data.configured) {
-            statusDot.classList.add('ai-status-online');
-            statusText.innerText = '已连接';
+            if (statusDot) statusDot.classList.add('ai-status-online');
+            if (statusText) statusText.innerText = '已连接';
+            if (inlineDot) { inlineDot.classList.add('online'); inlineDot.classList.remove('offline'); }
         } else {
-            statusDot.classList.add('ai-status-offline');
-            statusText.innerText = '未配置';
+            if (statusDot) statusDot.classList.add('ai-status-offline');
+            if (statusText) statusText.innerText = '未配置';
+            if (inlineDot) { inlineDot.classList.add('offline'); inlineDot.classList.remove('online'); }
             addLog('AI 农事助手未配置 API Key，请在 .env 文件中设置', 'warn');
         }
     } catch (err) {
         const statusDot = document.getElementById('aiStatusDot');
         const statusText = document.getElementById('aiStatusText');
-        statusDot.classList.add('ai-status-offline');
-        statusText.innerText = '不可用';
+        const inlineDot = document.getElementById('aiStatusDotInline');
+        if (statusDot) statusDot.classList.add('ai-status-offline');
+        if (statusText) statusText.innerText = '不可用';
+        if (inlineDot) { inlineDot.classList.add('offline'); inlineDot.classList.remove('online'); }
     }
 }
 
