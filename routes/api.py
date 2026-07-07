@@ -186,12 +186,15 @@ def stream():
         add_sse_client(q)
         
         try:
-            # 持续阻塞等待新数据
+            # 持续等待新数据，每 25 秒发送心跳防止连接被代理/防火墙关闭
             while True:
-                # 从队列获取数据（阻塞直到有数据）
-                data = q.get()
-                # 按 SSE 格式输出（data: xxx\n\n）
-                yield f"data: {data}\n\n"
+                try:
+                    # 阻塞等待数据，超时 25 秒则发送心跳
+                    data = q.get(timeout=25)
+                    yield f"data: {data}\n\n"
+                except queue.Empty:
+                    # 超时无数据，发送 SSE 注释作为心跳保活
+                    yield ": heartbeat\n\n"
         except GeneratorExit:
             # 客户端断开连接时，移除队列
             remove_sse_client(q)

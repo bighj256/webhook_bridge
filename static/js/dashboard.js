@@ -1254,7 +1254,13 @@ function addAiMessage(content, isUser = false) {
     if (isUser) {
         contentDiv.innerHTML = `<p>${content}</p>`;
     } else {
-        contentDiv.innerHTML = content.replace(/\n/g, '<br>');
+        // Render Markdown to HTML using marked.js
+        if (typeof marked !== 'undefined') {
+            marked.setOptions({ breaks: true, gfm: true });
+            contentDiv.innerHTML = marked.parse(content);
+        } else {
+            contentDiv.innerHTML = content.replace(/\n/g, '<br>');
+        }
     }
 
     messageDiv.appendChild(contentDiv);
