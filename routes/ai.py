@@ -89,6 +89,22 @@ RANGES = {
 _user_locks = {}
 _user_locks_lock = threading.Lock()
 
+# Semaphore-based queue: capacity = number of API keys, so N keys = N concurrent users
+# Others wait in queue; initialized after config is loaded
+_slot_semaphore = None
+_semaphore_lock = threading.Lock()
+
+
+def _get_semaphore():
+    """Lazy-init the semaphore with capacity = number of API keys."""
+    global _slot_semaphore
+    if _slot_semaphore is None:
+        with _semaphore_lock:
+            if _slot_semaphore is None:
+                num_keys = len(AI_CONFIG['api_keys'])
+                _slot_semaphore = threading.BoundedSemaphore(max(1, num_keys))
+    return _slot_semaphore
+
 
 def _acquire_user_lock(user_id):
     """Try to acquire the per-user lock. Returns True if acquired, False if already held."""
@@ -174,36 +190,56 @@ def get_latest_sensor_data():
         return None
 
 
+# Round-robin counter for API key selection (thread-safe via lock)
+_key_counter = 0
+_key_counter_lock = threading.Lock()
+
+
+def _get_next_api_key():
+    """Round-robin selection of API key for concurrent request distribution."""
+    global _key_counter
+    keys = AI_CONFIG['api_keys']
+    if not keys:
+        return ""
+    with _key_counter_lock:
+        key = keys[_key_counter % len(keys)]
+        _key_counter += 1
+    return key
+
+
 def call_ai_api(messages):
     """调用 AI API"""
-    api_key = AI_CONFIG['api_key']
+    api_keys = AI_CONFIG['api_keys']
     model_name = AI_CONFIG['model_name']
     api_base_url = AI_CONFIG['api_base_url']
     timeout = AI_CONFIG['timeout']
-    
-    if not api_key:
+
+    if not api_keys:
         return None, "未配置 AI API Key，请在 .env 文件中设置 AI_API_KEY"
-    
-    headers = {
-        'Content-Type': 'application/json',
-        'Authorization': f'Bearer {api_key}'
-    }
-    
+
+    # Round-robin: each concurrent request uses a different API key
+    api_key = _get_next_api_key()
+    api_key_index = api_keys.index(api_key) + 1 if api_key in api_keys else 0
+    log_info(f"Using API key #{api_key_index}/{len(api_keys)}")
+
     payload = {
         'model': model_name,
         'messages': messages,
         'temperature': 0.7,
         'max_tokens': 2000
     }
-    
+
     try:
         url = f"{api_base_url}/chat/completions"
-        # Separate connect timeout (10s) and read timeout (from config)
+        headers = {
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {api_key}'
+        }
         response = requests.post(url, headers=headers, json=payload, timeout=(10, timeout))
         response.raise_for_status()
-        
+
         result = response.json()
-        
+
         if 'choices' in result and len(result['choices']) > 0:
             message = result['choices'][0]['message']
             content = message.get('content')
@@ -216,9 +252,9 @@ def call_ai_api(messages):
                 return reasoning.strip(), None
 
             return None, "AI 返回内容为空，请重试"
-        
+
         return None, "AI 返回格式异常"
-    
+
     except requests.exceptions.Timeout:
         return None, "AI 请求超时，请稍后重试"
     except requests.exceptions.RequestException as e:
@@ -228,7 +264,6 @@ def call_ai_api(messages):
         log_error(f"AI API 处理异常: {e}")
         log_error(traceback.format_exc())
         return None, "AI 服务异常，请稍后重试"
-
 
 @ai_bp.route('/ask', methods=['POST'])
 def ai_ask():
@@ -295,7 +330,19 @@ def ai_ask():
                 if h.get('role') and h.get('content'):
                     messages.append(h)
 
-            response, error = call_ai_api(messages)
+            # --- Slot queue: N keys = N concurrent slots ---
+            sem = _get_semaphore()
+            acquired = sem.acquire(blocking=False)
+            if not acquired:
+                return jsonify({
+                    "code": 202,
+                    "message": "当前访问人数过多，正在排队等待中，请稍后重试..."
+                }), 202
+
+            try:
+                response, error = call_ai_api(messages)
+            finally:
+                sem.release()
 
             if error:
                 log_warning(f"AI 调用失败: {error}")

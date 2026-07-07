@@ -1333,7 +1333,13 @@ async function askAI(question = '') {
 
         hideAiLoading();
 
-        if (data.code === 0) {
+        if (data.code === 202) {
+            // Queue full — auto-retry after 3 seconds
+            hideAiLoading();
+            showToast('⏳ 排队等待中', '当前访问人数较多，3秒后自动重试...', 'info');
+            addLog(`AI 排队等待: ${data.message}`, 'info');
+            setTimeout(() => askAI(''), 3000);
+        } else if (data.code === 0) {
             const responseText = data.data.response;
             if (responseText && responseText.trim()) {
                 addAiMessage(responseText);
