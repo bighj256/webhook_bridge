@@ -1329,14 +1329,19 @@ async function askAI(question = '') {
 
         if (data.code === 0) {
             const responseText = data.data.response;
-            addAiMessage(responseText);
-            aiChatHistory.push({ role: 'assistant', content: responseText });
+            if (responseText && responseText.trim()) {
+                addAiMessage(responseText);
+                aiChatHistory.push({ role: 'assistant', content: responseText });
 
-            if (aiChatHistory.length > 6) {
-                aiChatHistory = aiChatHistory.slice(-6);
+                if (aiChatHistory.length > 6) {
+                    aiChatHistory = aiChatHistory.slice(-6);
+                }
+
+                addLog(`AI 农事助手回复: ${responseText.substring(0, 50)}...`, 'info');
+            } else {
+                showToast('⚠️ AI 返回为空', 'AI 未返回有效内容，请重试', 'warning');
+                addLog('AI 返回内容为空，请重试', 'error');
             }
-
-            addLog(`AI 农事助手回复: ${responseText.substring(0, 50)}...`, 'info');
         } else {
             showToast('⚠️ AI 请求失败', data.message, 'warning');
             addLog(`AI 请求失败: ${data.message}`, 'error');

@@ -1946,7 +1946,7 @@ body.light-theme .ctrl-row-layout {
 
 /* ==================== AI ASSISTANT MODAL STYLES ==================== */
 .ai-modal-content {
-    max-width: 800px;
+    max-width: 960px;
     background: rgba(4, 10, 6, 0.95);
     border: 1px solid rgba(16, 185, 129, 0.15);
     box-shadow: 0 0 40px rgba(16, 185, 129, 0.1);
@@ -1990,8 +1990,8 @@ body.light-theme .ctrl-row-layout {
 
 /* Chat area inside the modal — taller than sidebar version */
 .ai-chat-area-modal {
-    height: 380px;
-    max-height: 420px;
+    height: 460px;
+    max-height: 480px;
     overflow-y: auto;
     padding: 1rem;
     background: rgba(0, 0, 0, 0.2);

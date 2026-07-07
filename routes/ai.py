@@ -2,10 +2,11 @@
 AI 农事助手路由模块
 负责与 AI 模型交互，提供基于传感器数据的农事建议
 """
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, session
 import requests
 import json
 import traceback
+import threading
 from datetime import datetime
 
 from core.logger import log_info, log_warning, log_error
@@ -38,6 +39,27 @@ RANGES = {
     'ph': {'min': 6.0, 'max': 7.5, 'name': '土壤pH值', 'unit': ''},
     'co2': {'min': 400, 'max': 800, 'name': 'CO₂浓度', 'unit': 'ppm'}
 }
+
+# Per-user request locks to prevent concurrent AI calls from the same user
+_user_locks = {}
+_user_locks_lock = threading.Lock()
+
+
+def _acquire_user_lock(user_id):
+    """Try to acquire the per-user lock. Returns True if acquired, False if already held."""
+    with _user_locks_lock:
+        if user_id not in _user_locks:
+            _user_locks[user_id] = threading.Lock()
+        lock = _user_locks[user_id]
+    return lock.acquire(blocking=False)
+
+
+def _release_user_lock(user_id):
+    """Release the per-user lock."""
+    with _user_locks_lock:
+        lock = _user_locks.get(user_id)
+    if lock is not None and lock.locked():
+        lock.release()
 
 
 def get_status(value, key):
@@ -137,8 +159,17 @@ def call_ai_api(messages):
         result = response.json()
         
         if 'choices' in result and len(result['choices']) > 0:
-            content = result['choices'][0]['message']['content']
-            return content.strip(), None
+            message = result['choices'][0]['message']
+            content = message.get('content')
+            if content is not None and isinstance(content, str) and content.strip():
+                return content.strip(), None
+
+            # Zhipu AI thinking/reasoning mode may put the answer in reasoning_content
+            reasoning = message.get('reasoning_content')
+            if reasoning is not None and isinstance(reasoning, str) and reasoning.strip():
+                return reasoning.strip(), None
+
+            return None, "AI 返回内容为空，请重试"
         
         return None, "AI 返回格式异常"
     
@@ -172,56 +203,70 @@ def ai_ask():
     }
     """
     try:
-        data = request.get_json()
-        if not data:
-            return jsonify({"code": 400, "message": "No JSON data"}), 400
-        
-        question = data.get('question', '').strip()
-        history = data.get('history', [])
-        
-        if len(question) > 500:
-            return jsonify({"code": 400, "message": "问题长度不能超过500字符"}), 400
-        
-        sensor_data = get_latest_sensor_data()
-        if not sensor_data:
-            return jsonify({"code": 400, "message": "暂无传感器数据，请先等待数据上报"}), 400
-        
-        formatted_data = format_sensor_data(sensor_data)
-        
-        default_question = "请根据当前数据给出综合环境评估和农事建议"
-        user_question = question if question else default_question
-        
-        user_prompt = f"""{formatted_data}
+        # --- Per-user concurrency guard ---
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({"code": 401, "message": "请先登录"}), 401
+
+        if not _acquire_user_lock(user_id):
+            return jsonify({
+                "code": 429,
+                "message": "您有一个正在处理中的 AI 请求，请等待完成后再试"
+            }), 429
+
+        try:
+            data = request.get_json()
+            if not data:
+                return jsonify({"code": 400, "message": "No JSON data"}), 400
+
+            question = data.get('question', '').strip()
+            history = data.get('history', [])
+
+            if len(question) > 500:
+                return jsonify({"code": 400, "message": "问题长度不能超过500字符"}), 400
+
+            sensor_data = get_latest_sensor_data()
+            if not sensor_data:
+                return jsonify({"code": 400, "message": "暂无传感器数据，请先等待数据上报"}), 400
+
+            formatted_data = format_sensor_data(sensor_data)
+
+            default_question = "请根据当前数据给出综合环境评估和农事建议"
+            user_question = question if question else default_question
+
+            user_prompt = f"""{formatted_data}
 
 用户问题：{user_question}
 
 请给出专业的农事建议："""
-        
-        messages = [
-            {'role': 'system', 'content': SYSTEM_PROMPT},
-            {'role': 'user', 'content': user_prompt}
-        ]
-        
-        for h in history[-3:]:
-            if h.get('role') and h.get('content'):
-                messages.append(h)
-        
-        response, error = call_ai_api(messages)
-        
-        if error:
-            log_warning(f"AI 调用失败: {error}")
-            return jsonify({"code": 500, "message": error}), 500
-        
-        log_info(f"AI 农事建议生成成功，问题: {user_question[:50]}...")
-        
-        return jsonify({
-            "code": 0,
-            "data": {
-                "response": response,
-                "sensor_data": sensor_data
-            }
-        })
-    
+
+            messages = [
+                {'role': 'system', 'content': SYSTEM_PROMPT},
+                {'role': 'user', 'content': user_prompt}
+            ]
+
+            for h in history[-3:]:
+                if h.get('role') and h.get('content'):
+                    messages.append(h)
+
+            response, error = call_ai_api(messages)
+
+            if error:
+                log_warning(f"AI 调用失败: {error}")
+                return jsonify({"code": 500, "message": error}), 500
+
+            log_info(f"AI 农事建议生成成功，问题: {user_question[:50]}...")
+
+            return jsonify({
+                "code": 0,
+                "data": {
+                    "response": response,
+                    "sensor_data": sensor_data
+                }
+            })
+        finally:
+            _release_user_lock(user_id)
+
     except Exception as e:
         log_error(f"AI 接口异常: {e}")
         log_error(traceback.format_exc())
