@@ -155,7 +155,8 @@ def call_ai_api(messages):
     
     try:
         url = f"{api_base_url}/chat/completions"
-        response = requests.post(url, headers=headers, json=payload, timeout=timeout)
+        # Separate connect timeout (10s) and read timeout (from config)
+        response = requests.post(url, headers=headers, json=payload, timeout=(10, timeout))
         response.raise_for_status()
         
         result = response.json()
