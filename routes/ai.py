@@ -148,7 +148,9 @@ def call_ai_api(messages):
         'model': model_name,
         'messages': messages,
         'temperature': 0.7,
-        'max_tokens': 500
+        'max_tokens': 500,
+        'stream': False,
+        'thinking': {'type': 'disabled'}
     }
     
     try:
