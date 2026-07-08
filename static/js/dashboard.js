@@ -402,7 +402,7 @@ const widescreenCrosshair = {
         }
 
         // 5. Draw the beautiful floating glassmorphic tooltip card
-        const tooltipWidth = 190;
+        const tooltipWidth = 215;
         const lineHeight = 22;
         const padding = 12;
         const headerHeight = 24;

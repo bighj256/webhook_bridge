@@ -481,7 +481,7 @@ def trend_data():
             
             for row in rows:
                 t = row[0]
-                time_str = t.strftime('%Y-%m-%d %H:%M')
+                time_str = t.strftime('%Y-%m-%d %H:%M:%S')
                 labels.append(time_str)
                 full_labels.append(time_str)
                 
@@ -651,14 +651,20 @@ def trend_data():
             # month/year 粒度的回退处理（缺失数据极少）
             padded_rows = [(make_naive(r[0]), *r[1:]) for r in rows if r[0]]
 
+        # 短时间粒度（5s/10s 桶）显示到秒，分钟级以上不显示秒
+        if db_interval in ('5 seconds', '10 seconds'):
+            time_fmt = '%Y-%m-%d %H:%M:%S'
+        else:
+            time_fmt = '%Y-%m-%d %H:%M'
+
         # 构造返回数据
         labels = []
-        full_labels = [b[0].strftime('%Y-%m-%d %H:%M') for b in padded_rows]
+        full_labels = [b[0].strftime(time_fmt) for b in padded_rows]
         datasets = {f: [] for f in fields}
-        
+
         for row in padded_rows:
             bucket = row[0]
-            labels.append(bucket.strftime('%Y-%m-%d %H:%M'))
+            labels.append(bucket.strftime(time_fmt))
                 
             # 填充各字段数据
             for idx, f in enumerate(fields):
