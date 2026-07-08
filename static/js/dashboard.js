@@ -702,6 +702,12 @@ function exportAllCsv() {
 }
 
 // ---------- SSE 长连接与页面加载初始化 ----------
+// 客户端心跳看门狗：追踪上次收到数据的时间，检测静默断连
+let sseConnected = false;
+let lastMessageTime = Date.now();
+let disconnectToastShown = false;
+const SSE_HEARTBEAT_TIMEOUT = 35000; // 35秒 — 服务端每25秒发一次心跳注释
+
 document.addEventListener('DOMContentLoaded', () => {
     fetchLatestAndUpdate();
     fetchStats();
@@ -709,27 +715,61 @@ document.addEventListener('DOMContentLoaded', () => {
     const evtSource = new EventSource('/api/stream');
 
     evtSource.onopen = function () {
-        // 更新侧边栏与健康度
+        sseConnected = true;
+        lastMessageTime = Date.now();
+
+        // 更新侧边栏状态指示器为”正常”
         systemStatusDot.style.background = '#34d399';
         systemStatusText.innerText = '实时正常监测';
         uploadStatusVal.innerText = 'SSE Online';
-        addLog('已接入智慧温室数据推流层 (SSE)。', 'info');
+
+        if (disconnectToastShown) {
+            // 之前处于断连状态，现在恢复了 → 弹出重连提示
+            showToast('🔗 网络已恢复', '数据推流连接已重新建立，监测恢复正常', 'info');
+            addLog('✅ 网络已恢复，数据推流连接重新建立。', 'info');
+            disconnectToastShown = false;
+        } else {
+            addLog('已接入智慧温室数据推流层 (SSE)。', 'info');
+        }
     };
 
     evtSource.onerror = function () {
+        sseConnected = false;
+
         systemStatusDot.style.background = '#f87171';
         systemStatusText.innerText = '连接已被断开';
         uploadStatusVal.innerText = 'Reconnecting';
-        addLog('网络断开，正在尝试重组推流连接…', 'error');
+
+        if (!disconnectToastShown) {
+            showToast('⚠️ 网络连接已断开', '正在尝试重新连接数据推流…', 'alert');
+            addLog('🔴 网络断开，正在尝试重组推流连接…', 'error');
+            disconnectToastShown = true;
+        }
     };
 
     evtSource.onmessage = function (event) {
+        // 更新心跳时间戳（每次收到真实数据都刷新）
+        lastMessageTime = Date.now();
+
+        // 如果之前标记为断连但收到了数据（竞态条件保护）
+        if (!sseConnected) {
+            sseConnected = true;
+            systemStatusDot.style.background = '#34d399';
+            systemStatusText.innerText = '实时正常监测';
+            uploadStatusVal.innerText = 'SSE Online';
+            if (disconnectToastShown) {
+                showToast('🔗 网络已恢复', '数据推流连接已重新建立', 'info');
+                addLog('✅ 网络已恢复，数据推流连接重新建立。', 'info');
+                disconnectToastShown = false;
+            }
+        }
+
         try {
             const data = JSON.parse(event.data);
             addLog(`STM32上报: 温度 ${data.temp}°C | 湿度 ${data.air_humi}% | 土湿 ${data.soil_humi}% | 光强 ${data.light}lx | CO2 ${data.co2}ppm | pH ${data.ph}`, 'info');
             updateUI(data);
 
-            // 如果处于“实时”且 Modal 展开，流式刷新图表
+            // 如果处于”实时”且 Modal 展开，流式刷新图表
             const timeUnit = document.getElementById('modalTimeUnit').value;
             if (document.getElementById('chartModal').style.display === 'flex' && currentChart && timeUnit === 'live') {
                 let timeStr = '';
@@ -785,9 +825,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 currentChart.update();
             }
         } catch (e) {
-            console.error("解析 SSE 数据失败", e);
+            console.error('解析 SSE 数据失败', e);
         }
     };
+
+    // ---------- 客户端心跳看门狗：检测 TCP 半开连接导致的静默断连 ----------
+    // 浏览器 EventSource 的 onerror 在 WiFi 断开时可能不会立即触发（TCP 半开状态），
+    // 因此用一个独立定时器检查距离上次收到数据的时间，
+    // 超过 35 秒（服务端心跳间隔 25 秒 + 10 秒容错）则判定为断连。
+    setInterval(() => {
+        const now = Date.now();
+        if (sseConnected && (now - lastMessageTime) > SSE_HEARTBEAT_TIMEOUT) {
+            // 超过35秒没收到任何数据，大概率是 TCP 半开连接，主动标记为断连
+            sseConnected = false;
+            systemStatusDot.style.background = '#f87171';
+            systemStatusText.innerText = '连接超时无响应';
+            uploadStatusVal.innerText = 'Timeout';
+
+            if (!disconnectToastShown) {
+                showToast('⚠️ 数据连接超时', '超过 35 秒未收到传感器数据，网络可能已中断', 'alert');
+                addLog('🔴 数据连接超时：超过 35 秒未收到任何传感器数据，网络可能已中断。', 'error');
+                disconnectToastShown = true;
+            }
+        }
+    }, 8000);
 
     setInterval(updateClock, 1000);
     setInterval(fetchStats, 30000);
