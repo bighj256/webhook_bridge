@@ -39,7 +39,7 @@ import random
 import string
 
 from core.logger import log_info, log_warning, log_error
-from core.db import get_db_connection, release_db_connection
+from core.db import get_db
 from config import SECRET_KEY
 
 auth_bp = Blueprint('auth', __name__)
@@ -159,13 +159,12 @@ def login():
             return jsonify({"code": 400, "message": "验证码错误"}), 400
         session.pop('captcha', None)
         
-        conn = get_db_connection()
+        conn = get_db()
         cur = conn.cursor()
         cur.execute("SELECT id, password_hash FROM users WHERE username = %s", (username,))
         row = cur.fetchone()
         cur.close()
-        release_db_connection(conn)
-        
+
         if not row:
             log_warning(f"Login failed: user {username} not found")
             return jsonify({"code": 400, "message": "用户名或密码错误"}), 400
@@ -216,15 +215,14 @@ def register():
             return jsonify({"code": 400, "message": "验证码错误"}), 400
         session.pop('captcha', None)
         
-        conn = get_db_connection()
+        conn = get_db()
         cur = conn.cursor()
         
         cur.execute("SELECT id FROM users WHERE username = %s", (username,))
         if cur.fetchone():
             cur.close()
-            release_db_connection(conn)
             return jsonify({"code": 400, "message": "用户名已存在"}), 400
-        
+
         password_hash = generate_password_hash(password)
         cur.execute(
             "INSERT INTO users (username, password_hash) VALUES (%s, %s)",
@@ -236,8 +234,7 @@ def register():
         user_id = cur.fetchone()[0]
         
         cur.close()
-        release_db_connection(conn)
-        
+
         session['user_id'] = user_id
         session['username'] = username
         log_info(f"User {username} registered successfully")
@@ -324,13 +321,12 @@ def login_required(f):
 @login_required
 def get_profile():
     try:
-        conn = get_db_connection()
+        conn = get_db()
         cur = conn.cursor()
         cur.execute("SELECT id, username FROM users WHERE id = %s", (session['user_id'],))
         row = cur.fetchone()
         cur.close()
-        release_db_connection(conn)
-        
+
         if row:
             user_id, username = row
             return jsonify({
@@ -367,22 +363,20 @@ def update_profile():
         if len(new_username) < 3 or len(new_username) > 20:
             return jsonify({"code": 400, "message": "用户名长度需在3-20字符之间"}), 400
         
-        conn = get_db_connection()
+        conn = get_db()
         cur = conn.cursor()
         
         cur.execute("SELECT id FROM users WHERE username = %s", (new_username,))
         if cur.fetchone():
             cur.close()
-            release_db_connection(conn)
             return jsonify({"code": 400, "message": "用户名已存在"}), 400
-        
+
         cur.execute(
             "UPDATE users SET username = %s WHERE id = %s",
             (new_username, session['user_id'])
         )
         conn.commit()
         cur.close()
-        release_db_connection(conn)
         
         session['username'] = new_username
         log_info(f"User {session['user_id']} updated username to {new_username}")
@@ -419,23 +413,22 @@ def update_password():
         if len(new_password) < 6:
             return jsonify({"code": 400, "message": "新密码长度至少6位"}), 400
         
-        conn = get_db_connection()
+        conn = get_db()
         cur = conn.cursor()
         cur.execute("SELECT password_hash FROM users WHERE id = %s", (session['user_id'],))
         row = cur.fetchone()
         cur.close()
-        release_db_connection(conn)
-        
+
         if not row:
             return jsonify({"code": 404, "message": "用户不存在"}), 404
-        
+
         password_hash = row[0]
         if not check_password_hash(password_hash, old_password):
             return jsonify({"code": 400, "message": "原密码错误"}), 400
         
         new_password_hash = generate_password_hash(new_password)
         
-        conn = get_db_connection()
+        conn = get_db()
         cur = conn.cursor()
         cur.execute(
             "UPDATE users SET password_hash = %s WHERE id = %s",
@@ -443,8 +436,7 @@ def update_password():
         )
         conn.commit()
         cur.close()
-        release_db_connection(conn)
-        
+
         log_info(f"User {session['username']} updated password")
         
         return jsonify({"code": 0, "message": "success"}), 200

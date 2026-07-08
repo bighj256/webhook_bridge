@@ -36,7 +36,7 @@ import threading
 from datetime import datetime
 
 from core.logger import log_info, log_warning, log_error
-from core.db import get_db_connection, release_db_connection
+from core.db import get_db
 from config import AI_CONFIG
 
 ai_bp = Blueprint('ai', __name__)
@@ -248,8 +248,7 @@ def get_latest_sensor_data():
                      如果数据库中没有数据，返回 None
     """
     try:
-        # 连接数据库
-        conn = get_db_connection()
+        conn = get_db()
         cur = conn.cursor()
 
         # 查询最新一条数据（按时间倒序，取第一条）
@@ -260,10 +259,7 @@ def get_latest_sensor_data():
             LIMIT 1
         """)
         row = cur.fetchone()
-
-        # 关闭数据库连接
         cur.close()
-        release_db_connection(conn)
 
         # 处理无数据情况
         if not row:

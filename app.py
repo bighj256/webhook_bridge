@@ -33,30 +33,36 @@ Flask 主应用模块 - 智能农场 Webhook 服务器
 数据流向:
     传感器 → EMQX → /api/sensor_data → PostgreSQL → SSE → 前端仪表盘
 """
+import atexit
 from flask import Flask
+from datetime import timedelta
+
 from core.logger import init_logger
-from core.db import init_db_pool, close_db_pool
+from core.db import init_db_pool, close_db, close_db_pool
 from routes.api import api_bp
 from routes.views import views_bp
 from routes.auth import auth_bp
 from routes.ai import ai_bp
 from routes.middleware import register_middleware
 from config import SECRET_KEY
-from datetime import timedelta
 
 app = Flask(__name__)
 
 # 设置应用配置，会话加密密钥，用于防 CSRF 攻击
-app.config['SECRET_KEY'] = SECRET_KEY                            
-app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=24) 
+app.config['SECRET_KEY'] = SECRET_KEY
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=24)
 
 # 初始化日志系统（控制台 + 文件双输出）
 init_logger(app)
 
 # 初始化数据库连接池（生产环境：连接池模式；降级方案：单连接模式）
+# 连接池在整个应用生命周期内持续存在，不再每请求重建
 init_db_pool()
 
-#注册蓝图
+# 注册应用退出时清理连接池（atexit 确保应用退出时执行一次）
+atexit.register(close_db_pool)
+
+# 注册蓝图
 app.register_blueprint(api_bp, url_prefix='/api')
 app.register_blueprint(views_bp, url_prefix='/')
 app.register_blueprint(auth_bp, url_prefix='/auth')
@@ -67,12 +73,17 @@ register_middleware(app)
 
 
 @app.teardown_appcontext
-def shutdown_db_pool(exception=None):
+def return_db_connection(exception=None):
     """
-    Flask 应用上下文销毁时清理资源
-    当请求结束或应用关闭时，此函数会被调用，用于关闭数据库连接池。
+    Flask 请求结束后归还数据库连接到连接池
+
+    每个请求结束时调用 close_db()，将当前请求使用的连接归还到连接池。
+    如果有未提交的异常，会自动回滚事务。
+
+    注意：这里归还的是单个连接，不是销毁整个连接池。
+    连接池本身在应用退出时由 atexit 钩子负责关闭。
     """
-    close_db_pool()
+    close_db(exception)
 
 
 if __name__ == '__main__':

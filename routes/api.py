@@ -31,7 +31,7 @@ import psycopg2
 from datetime import datetime, timedelta
 
 from core.logger import log_info, log_warning, log_error
-from core.db import get_db_connection, release_db_connection
+from core.db import get_db
 from core.sse import add_sse_client, remove_sse_client, broadcast_sse, sse_clients
 
 # 创建 API 蓝图，注册到 Flask 应用
@@ -131,7 +131,7 @@ def handle_sensor_data():
             return jsonify({"code": 400, "message": "Missing 'time' field"}), 400
 
         # 连接数据库并插入数据
-        conn = get_db_connection()
+        conn = get_db()
         cur = conn.cursor()
         
         # SQL 插入语句：将 Unix 时间戳转换为 PostgreSQL 时间类型
@@ -143,9 +143,8 @@ def handle_sensor_data():
         cur.execute(insert_sql, params)
         conn.commit()
         
-        # 关闭数据库连接
         cur.close()
-        release_db_connection(conn)
+        # 连接由 teardown_appcontext 自动归还连接池
 
         # 推送新数据到所有在线的 SSE 客户端（实时更新前端）
         push_data = {
@@ -239,7 +238,7 @@ def latest_data():
     """
     try:
         # 连接数据库
-        conn = get_db_connection()
+        conn = get_db()
         cur = conn.cursor()
         
         # 查询最新一条数据（按时间倒序，取第一条）
@@ -251,9 +250,7 @@ def latest_data():
         """)
         row = cur.fetchone()
         
-        # 关闭数据库连接
         cur.close()
-        release_db_connection(conn)
 
         # 处理无数据情况
         if not row:
@@ -296,7 +293,7 @@ def get_stats():
     """
     try:
         # 连接数据库
-        conn = get_db_connection()
+        conn = get_db()
         cur = conn.cursor()
         
         # SQL 查询：计算最近24小时各指标的统计值
@@ -314,10 +311,8 @@ def get_stats():
         cur.execute(sql)
         row = cur.fetchone()
         
-        # 关闭数据库连接
         cur.close()
-        release_db_connection(conn)
-        
+
         # 处理无数据情况
         if not row or row[0] is None:
             return jsonify({})
@@ -370,7 +365,7 @@ def export_data():
         
     try:
         # 连接数据库
-        conn = get_db_connection()
+        conn = get_db()
         cur = conn.cursor()
         
         # 动态构建 SQL 查询语句
@@ -397,10 +392,8 @@ def export_data():
         cur.execute(query, tuple(sql_params))
         rows = cur.fetchall()
         
-        # 关闭数据库连接
         cur.close()
-        release_db_connection(conn)
-        
+
         # 使用 StringIO 构建 CSV 内容
         output = io.StringIO()
         writer = csv.writer(output)
@@ -468,7 +461,7 @@ def trend_data():
     # 实时模式：直接获取最近60条原始数据
     if unit == 'live':
         try:
-            conn = get_db_connection()
+            conn = get_db()
             cur = conn.cursor()
             
             # 查询最近60条数据
@@ -477,8 +470,7 @@ def trend_data():
             rows = cur.fetchall()
             
             cur.close()
-            release_db_connection(conn)
-            
+
             # 反转数据（按时间正序）
             rows.reverse()
             
@@ -560,7 +552,7 @@ def trend_data():
 
     try:
         # 连接数据库cursor(游标)
-        conn = get_db_connection()
+        conn = get_db()
         cur = conn.cursor()
         
         # 根据粒度选择时间桶表达式
@@ -588,9 +580,7 @@ def trend_data():
         cur.execute(sql, (start_date, end_date))
         rows = cur.fetchall()
         
-        # 关闭数据库连接
         cur.close()
-        release_db_connection(conn)
 
         # 将时间戳对齐到时间桶边界的辅助函数
         def align_timestamp(dt, interval_str):
