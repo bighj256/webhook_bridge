@@ -1,6 +1,25 @@
 """
 API 路由模块
-负责传感器数据的接收、存储、查询、导出和实时推送
+
+负责传感器数据的接收、存储、查询、导出和实时推送，是整个智能农场系统的数据核心接口。
+
+核心功能:
+    - 数据接收: 通过 Webhook 接收 EMQX 转发的传感器数据
+    - 数据存储: 将传感器数据持久化到 PostgreSQL 数据库
+    - 实时推送: 通过 SSE (Server-Sent Events) 向前端推送实时数据
+    - 数据查询: 提供最新数据、统计数据、趋势数据等查询接口
+    - 数据导出: 支持将传感器数据导出为 CSV 文件
+
+路由列表:
+    POST /api/sensor_data   - 接收传感器数据(EMQX Webhook)
+    GET  /api/stream        - SSE 实时数据流
+    GET  /api/latest        - 获取最新一条传感器数据
+    GET  /api/stats         - 获取最近24小时统计数据
+    GET  /api/export        - 导出传感器数据为 CSV
+    GET  /api/trend         - 获取历史趋势数据
+
+数据流向:
+    EMQX Broker → /api/sensor_data → PostgreSQL → SSE → 前端 Dashboard
 """
 from flask import Blueprint, request, jsonify, Response
 import json
@@ -12,7 +31,7 @@ import psycopg2
 from datetime import datetime, timedelta
 
 from core.logger import log_info, log_warning, log_error
-from core.db import get_db_connection
+from core.db import get_db_connection, release_db_connection
 from core.sse import add_sse_client, remove_sse_client, broadcast_sse, sse_clients
 
 # 创建 API 蓝图，注册到 Flask 应用
@@ -126,7 +145,7 @@ def handle_sensor_data():
         
         # 关闭数据库连接
         cur.close()
-        conn.close()
+        release_db_connection(conn)
 
         # 推送新数据到所有在线的 SSE 客户端（实时更新前端）
         push_data = {
@@ -234,7 +253,7 @@ def latest_data():
         
         # 关闭数据库连接
         cur.close()
-        conn.close()
+        release_db_connection(conn)
 
         # 处理无数据情况
         if not row:
@@ -297,7 +316,7 @@ def get_stats():
         
         # 关闭数据库连接
         cur.close()
-        conn.close()
+        release_db_connection(conn)
         
         # 处理无数据情况
         if not row or row[0] is None:
@@ -380,7 +399,7 @@ def export_data():
         
         # 关闭数据库连接
         cur.close()
-        conn.close()
+        release_db_connection(conn)
         
         # 使用 StringIO 构建 CSV 内容
         output = io.StringIO()
@@ -458,7 +477,7 @@ def trend_data():
             rows = cur.fetchall()
             
             cur.close()
-            conn.close()
+            release_db_connection(conn)
             
             # 反转数据（按时间正序）
             rows.reverse()
@@ -571,7 +590,7 @@ def trend_data():
         
         # 关闭数据库连接
         cur.close()
-        conn.close()
+        release_db_connection(conn)
 
         # 将时间戳对齐到时间桶边界的辅助函数
         def align_timestamp(dt, interval_str):

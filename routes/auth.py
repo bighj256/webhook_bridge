@@ -1,6 +1,35 @@
 """
 认证路由模块
-负责用户登录、注册、验证码生成和会话管理
+
+负责用户登录、注册、验证码生成和会话管理，是系统安全的核心模块。
+
+核心功能:
+    - 验证码生成: 使用 Pillow 库生成随机验证码图片，防止自动化攻击
+    - 用户注册: 创建新用户，密码使用 SHA256 哈希加密存储
+    - 用户登录: 验证用户名、密码和验证码，设置会话状态
+    - 用户登出: 清除会话状态，安全退出
+    - 用户信息: 支持查询和修改用户信息（用户名、密码）
+
+安全特性:
+    - 密码加密: 使用 werkzeug.security.generate_password_hash() 加密存储
+    - 会话管理: Flask Session 持久化，有效期24小时
+    - 验证码: 一次性使用，验证后立即销毁
+    - 路由保护: 登录状态检查，未登录用户无法访问受限资源
+
+路由列表:
+    GET  /auth/captcha        - 获取验证码图片
+    POST /auth/login          - 用户登录
+    POST /auth/register       - 用户注册
+    POST /auth/logout         - 用户登出
+    GET  /auth/login_page     - 渲染登录页面
+    GET  /auth/register_page  - 渲染注册页面
+    GET  /auth/status         - 获取登录状态
+    GET  /auth/profile        - 获取用户信息
+    PUT  /auth/profile        - 修改用户名
+    PUT  /auth/password       - 修改密码
+
+用户认证流程:
+    用户访问 → 输入用户名密码验证码 → /auth/login → 验证 → 设置Session → 访问Dashboard
 """
 from flask import Blueprint, request, jsonify, render_template, session, redirect, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -10,17 +39,13 @@ import random
 import string
 
 from core.logger import log_info, log_warning, log_error
-from core.db import get_db_connection
+from core.db import get_db_connection, release_db_connection
 from config import SECRET_KEY
 
 auth_bp = Blueprint('auth', __name__)
 
-
+#生成随机验证码图片
 def generate_captcha():
-    """
-    生成随机验证码图片
-    返回: (验证码字符串, 图片字节流)
-    """
     width, height = 180, 60
     chars = string.ascii_uppercase + string.digits
     captcha_text = ''.join(random.choices(chars, k=4))
@@ -96,13 +121,11 @@ def generate_captcha():
 # ==============================================================================
 # 路由: GET /auth/captcha
 # 功能: 获取验证码图片
+# 生成随机4位字母数字验证码，存储到 session 中，返回 PNG 图片
 # ==============================================================================
 @auth_bp.route('/captcha')
 def captcha():
-    """
-    获取验证码图片
-    生成随机4位字母数字验证码，存储到 session 中，返回 PNG 图片
-    """
+
     captcha_text, buf = generate_captcha()
     session['captcha'] = captcha_text.lower()
     session.permanent = True
@@ -119,16 +142,6 @@ def captcha():
 # ==============================================================================
 @auth_bp.route('/login', methods=['POST'])
 def login():
-    """
-    用户登录接口
-    参数:
-        username: 用户名
-        password: 密码
-        captcha: 验证码
-    返回:
-        200: {"code": 0, "message": "success"}
-        400: {"code": 400, "message": "..."}
-    """
     try:
         data = request.get_json()
         if not data:
@@ -151,7 +164,7 @@ def login():
         cur.execute("SELECT id, password_hash FROM users WHERE username = %s", (username,))
         row = cur.fetchone()
         cur.close()
-        conn.close()
+        release_db_connection(conn)
         
         if not row:
             log_warning(f"Login failed: user {username} not found")
@@ -179,16 +192,7 @@ def login():
 # ==============================================================================
 @auth_bp.route('/register', methods=['POST'])
 def register():
-    """
-    用户注册接口
-    参数:
-        username: 用户名
-        password: 密码
-        captcha: 验证码
-    返回:
-        200: {"code": 0, "message": "success"}
-        400: {"code": 400, "message": "..."}
-    """
+   
     try:
         data = request.get_json()
         if not data:
@@ -218,7 +222,7 @@ def register():
         cur.execute("SELECT id FROM users WHERE username = %s", (username,))
         if cur.fetchone():
             cur.close()
-            conn.close()
+            release_db_connection(conn)
             return jsonify({"code": 400, "message": "用户名已存在"}), 400
         
         password_hash = generate_password_hash(password)
@@ -232,7 +236,7 @@ def register():
         user_id = cur.fetchone()[0]
         
         cur.close()
-        conn.close()
+        release_db_connection(conn)
         
         session['user_id'] = user_id
         session['username'] = username
@@ -251,10 +255,6 @@ def register():
 # ==============================================================================
 @auth_bp.route('/logout', methods=['POST'])
 def logout():
-    """
-    用户登出接口
-    清空 session 中的用户信息
-    """
     session.pop('user_id', None)
     session.pop('username', None)
     return jsonify({"code": 0, "message": "success"}), 200
@@ -266,10 +266,6 @@ def logout():
 # ==============================================================================
 @auth_bp.route('/login_page')
 def login_page():
-    """
-    渲染登录页面
-    已登录用户直接重定向到仪表盘
-    """
     if 'user_id' in session:
         return redirect(url_for('views.dashboard'))
     return render_template('login.html')
@@ -281,10 +277,6 @@ def login_page():
 # ==============================================================================
 @auth_bp.route('/register_page')
 def register_page():
-    """
-    渲染注册页面
-    已登录用户直接重定向到仪表盘
-    """
     if 'user_id' in session:
         return redirect(url_for('views.dashboard'))
     return render_template('register.html')
@@ -296,10 +288,6 @@ def register_page():
 # ==============================================================================
 @auth_bp.route('/status')
 def status():
-    """
-    获取当前登录状态
-    返回用户信息或未登录状态
-    """
     if 'user_id' in session:
         return jsonify({
             "code": 0,
@@ -314,12 +302,9 @@ def status():
 # ==============================================================================
 # 装饰器: login_required
 # 功能: 路由保护，要求登录才能访问
+# 检查 session 中是否有 user_id，未登录则返回 401
 # ==============================================================================
 def login_required(f):
-    """
-    登录保护装饰器
-    检查 session 中是否有 user_id，未登录则返回 401
-    """
     from functools import wraps
     
     @wraps(f)
@@ -338,18 +323,13 @@ def login_required(f):
 @auth_bp.route('/profile', methods=['GET'])
 @login_required
 def get_profile():
-    """
-    获取当前登录用户的信息
-    返回:
-        200: {"code": 0, "data": {"user_id": int, "username": str}}
-    """
     try:
         conn = get_db_connection()
         cur = conn.cursor()
         cur.execute("SELECT id, username FROM users WHERE id = %s", (session['user_id'],))
         row = cur.fetchone()
         cur.close()
-        conn.close()
+        release_db_connection(conn)
         
         if row:
             user_id, username = row
@@ -374,14 +354,6 @@ def get_profile():
 @auth_bp.route('/profile', methods=['PUT'])
 @login_required
 def update_profile():
-    """
-    修改当前用户的用户名
-    参数:
-        new_username: 新用户名
-    返回:
-        200: {"code": 0, "message": "success"}
-        400: {"code": 400, "message": "..."}
-    """
     try:
         data = request.get_json()
         if not data:
@@ -401,7 +373,7 @@ def update_profile():
         cur.execute("SELECT id FROM users WHERE username = %s", (new_username,))
         if cur.fetchone():
             cur.close()
-            conn.close()
+            release_db_connection(conn)
             return jsonify({"code": 400, "message": "用户名已存在"}), 400
         
         cur.execute(
@@ -410,7 +382,7 @@ def update_profile():
         )
         conn.commit()
         cur.close()
-        conn.close()
+        release_db_connection(conn)
         
         session['username'] = new_username
         log_info(f"User {session['user_id']} updated username to {new_username}")
@@ -429,16 +401,6 @@ def update_profile():
 @auth_bp.route('/password', methods=['PUT'])
 @login_required
 def update_password():
-    """
-    修改当前用户的密码
-    参数:
-        old_password: 原密码
-        new_password: 新密码
-        confirm_password: 确认新密码
-    返回:
-        200: {"code": 0, "message": "success"}
-        400: {"code": 400, "message": "..."}
-    """
     try:
         data = request.get_json()
         if not data:
@@ -462,7 +424,7 @@ def update_password():
         cur.execute("SELECT password_hash FROM users WHERE id = %s", (session['user_id'],))
         row = cur.fetchone()
         cur.close()
-        conn.close()
+        release_db_connection(conn)
         
         if not row:
             return jsonify({"code": 404, "message": "用户不存在"}), 404
@@ -481,7 +443,7 @@ def update_password():
         )
         conn.commit()
         cur.close()
-        conn.close()
+        release_db_connection(conn)
         
         log_info(f"User {session['username']} updated password")
         
