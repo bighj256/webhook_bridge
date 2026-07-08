@@ -495,9 +495,15 @@ def ai_ask():
             ]
 
             # 添加历史对话记录（最多3条）
+            # 过滤掉末尾的 assistant 消息（缺少配对的 user 消息会导致 AI 返回空内容）
+            filtered_history = []
             for h in history[-3:]:
                 if h.get('role') and h.get('content'):
-                    messages.append(h)
+                    filtered_history.append(h)
+            # 如果最后一条是 assistant，去掉它（对话结构必须以 user 结尾）
+            while filtered_history and filtered_history[-1].get('role') == 'assistant':
+                filtered_history.pop()
+            messages.extend(filtered_history)
 
             # ==============================================================================
             # Semaphore 并发控制：获取槽位

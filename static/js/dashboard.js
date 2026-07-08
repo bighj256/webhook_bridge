@@ -1379,6 +1379,10 @@ async function askAI(question = '') {
     showAiLoading();
 
     try {
+        // 一键分析（question 为空）时不传历史记录，避免孤立的 assistant
+        // 消息破坏对话结构导致 AI 返回空内容
+        const historyToSend = question.trim() ? aiChatHistory.slice(-3) : [];
+
         const response = await fetch('/api/ai/ask', {
             method: 'POST',
             headers: {
@@ -1386,7 +1390,7 @@ async function askAI(question = '') {
             },
             body: JSON.stringify({
                 question: question.trim(),
-                history: aiChatHistory.slice(-3)
+                history: historyToSend
             })
         });
 
