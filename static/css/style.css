@@ -2717,3 +2717,17 @@ body.light-theme .settings-panel .form-group input::placeholder {
 body.light-theme .settings-panel .form-group label {
     color: #475569;
 }
+.log-status-dot-inline.new-log-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background-color: #4dffa6;  /* 新日志提示颜色 */
+    border-radius: 50%;
+    margin-left: 6px;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}

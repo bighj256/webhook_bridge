@@ -56,12 +56,13 @@
                 </button>
 
                 <button class="action-btn action-secondary" id="openLogModalBtn" title="打开系统运行日志终端窗口">
-                    <span aria-hidden="true">📋</span> 运行日志 <span class="log-badge-count" id="logBadgeCount">0</span>
+                    <span aria-hidden="true">📋</span> 运行日志 
+                    <span class="log-status-dot-inline" id="logStatusDotInline" aria-label="新日志提示"></span>
                 </button>
 
                 <button class="action-btn action-secondary" id="openAiModalBtn" title="打开 AI 农事助手对话框">
                 <span aria-hidden="true">🤖</span> AI 农事助手
-                <span class="ai-status-dot-inline" id="aiStatusDotInline"></span>
+                <span class="ai-status-dot-inline" id="aiStatusDotInline" aria-label="AI连接状态"></span>
                 </button>
             </div>
 

@@ -664,17 +664,24 @@ function exportCsv() {
     }
 
     const timeUnit = document.getElementById('modalTimeUnit').value;
-    let url = `/api/export?params=${selectedFields.join(',')}`;
+    const params = encodeURIComponent(selectedFields.join(','));
+    let url = `/api/export?params=${params}`;
 
     if (timeUnit === 'custom') {
-        const start = document.getElementById('customStartDate').value;
-        const end = document.getElementById('customEndDate').value;
+        const start = document.getElementById('customStartDate').value; // "YYYY-MM-DDTHH:MM"
+        const end   = document.getElementById('customEndDate').value;
         if (!start) {
             showToast("⚠️ 导出失败", "自定义导出区间必须选择开始时间与日期", "warning");
             return;
         }
-        url += `&start=${start}`;
-        if (end) url += `&end=${end}`;
+        if (end && new Date(end) <= new Date(start)) {
+            showToast("⚠️ 无效区间", "结束时间必须晚于开始时间", "warning");
+            return;
+        }
+        // datetime-local 返回值补全秒
+        const formatCustom = dt => dt + ':00'; // 直接加秒，替换 T 为空格在下一步做
+        url += `&start=${encodeURIComponent(formatCustom(start).replace('T', ' '))}`;
+        if (end) url += `&end=${encodeURIComponent(formatCustom(end).replace('T', ' '))}`;
     } else {
         const now = new Date();
         let start = new Date();
@@ -683,22 +690,26 @@ function exportCsv() {
         else if (timeUnit === '1h') start.setHours(start.getHours() - 1);
         else if (timeUnit === '6h') start.setHours(start.getHours() - 6);
         else if (timeUnit === '12h') start.setHours(start.getHours() - 12);
-        else if (timeUnit === 'hour') start.setHours(start.getHours() - 24);
-        else if (timeUnit === 'day') start.setDate(start.getDate() - 7);
-        else if (timeUnit === 'week') start.setDate(start.getDate() - 56);
+        else if (timeUnit === 'hour') start.setHours(start.getHours() - 24);   // 建议改为 '24h'
+        else if (timeUnit === 'day') start.setDate(start.getDate() - 7);       // 建议改为 '7d'
+        else if (timeUnit === 'week') start.setDate(start.getDate() - 56);     // 建议改为 '8w'
         else if (timeUnit === 'month') start.setFullYear(start.getFullYear() - 1);
         else if (timeUnit === 'year') start.setFullYear(start.getFullYear() - 5);
 
-        const formatLocal = (d) => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().split('.')[0];
-        url += `&start=${formatLocal(start)}&end=${formatLocal(now)}`;
+        const pad = n => String(n).padStart(2, '0');
+        const formatLocal = d =>
+            `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+
+        url += `&start=${encodeURIComponent(formatLocal(start))}&end=${encodeURIComponent(formatLocal(now))}`;
     }
     window.open(url, '_blank');
 }
 
 function exportAllCsv() {
     const allFields = ['ph', 'co2', 'soil_humi', 'light', 'temp', 'air_humi'];
-    const url = `/api/export?params=${allFields.join(',')}`;
-    window.open(url, '_blank');
+    const params = encodeURIComponent(allFields.join(','));
+    const url = `/api/export?params=${params}`;
+    window.open(url, '_blank')
 }
 
 // ---------- SSE 长连接与页面加载初始化 ----------
@@ -925,6 +936,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ---------- 系统运行终端控制逻辑 ----------
 let systemLogs = [];
+let hasNewLog = false;  // 标记是否有新日志需要提示
+
 
 function saveLogs() {
     localStorage.setItem('systemLogs', JSON.stringify(systemLogs));
@@ -932,14 +945,17 @@ function saveLogs() {
 
 function updateLogCounts() {
     const total = systemLogs.length;
+    const badgeEl = document.getElementById('logStatusDotInline');
 
-    const badgeEl = document.getElementById('logBadgeCount');
-    if (badgeEl) badgeEl.innerText = total;
+    if (badgeEl) {
+        if (hasNewLog) {
+            badgeEl.classList.add('new-log-dot');  // 亮起，不自动熄灭
+        }
+    }
 
     const countEl = document.getElementById('logCount');
     if (countEl) countEl.innerText = total;
 
-    // 更新顶栏告警数
     const errCount = systemLogs.filter(l => l.level === 'error').length;
     const glanceErr = document.getElementById('glanceErrorCount');
     if (glanceErr) glanceErr.innerText = `${errCount} 条`;
@@ -1037,6 +1053,9 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 const logTimeFormatter = new Intl.DateTimeFormat('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit',
@@ -1049,6 +1068,8 @@ function addLog(message, level = 'info') {
     systemLogs.push(logObj);
 
     if (systemLogs.length > 1000) systemLogs.shift();
+
+    hasNewLog = true;  // 标记有新日志
 
     updateLogCounts();
     renderLog(logObj);
