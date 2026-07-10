@@ -1002,13 +1002,13 @@ body {
 }
 
 .log-count-display {
-    padding: 0.45rem 1rem;
-    border-radius: 12px;
-    font-size: 0.82rem;
+    padding: 0.4rem 1rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
     font-weight: 600;
-    color: var(--text-secondary);
-    background: rgba(8, 20, 13, 0.9);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: #1e293b;
+    background: #f8fafc;             /* 极浅背景 */
+    border: 1px solid #cbd5e1;
 }
 
 /* CRT CRT Overlay effect Terminal */
@@ -1471,7 +1471,14 @@ body {
 
     .sidebar-actions {
         flex-direction: row;
+        flex-wrap: wrap;
+        gap: 10px;
         margin-top: 1rem;
+    }
+
+    .sidebar-actions .action-btn {
+        flex: 1 1 calc(50% - 5px);
+        min-width: 140px;
     }
 
     .main-content {
@@ -1940,9 +1947,9 @@ body.light-theme .ctrl-row-layout {
     height: 8px;
     border-radius: 50%;
     background: var(--text-muted);
-    display: flex;
-    flex-shrink: 0;
+    display: inline-block;
     margin-left: 4px;
+    vertical-align: middle;
     transition: background 0.3s ease, box-shadow 0.3s ease;
 }
 
@@ -2731,15 +2738,14 @@ body.light-theme .settings-panel .form-group label {
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: transparent;
-    display: flex;
-    flex-shrink: 0;
-    transition: background 0.3s ease, box-shadow 0.3s ease;
+    background: var(--text-muted);
+    display: inline-block;
+    margin-left: 4px;
+    vertical-align: middle;
 }
 
 .log-status-dot-inline.new-log-dot {
     background-color: #059669;
-    margin-left: 6px;
     animation: pulse 1.5s ease-in-out infinite;
 }
 
