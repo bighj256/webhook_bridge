@@ -1940,9 +1940,9 @@ body.light-theme .ctrl-row-layout {
     height: 8px;
     border-radius: 50%;
     background: var(--text-muted);
-    display: inline-block;
+    display: flex;
+    flex-shrink: 0;
     margin-left: 4px;
-    vertical-align: middle;
     transition: background 0.3s ease, box-shadow 0.3s ease;
 }
 
@@ -2727,12 +2727,18 @@ body.light-theme .settings-panel .form-group input::placeholder {
 body.light-theme .settings-panel .form-group label {
     color: #475569;
 }
-.log-status-dot-inline.new-log-dot {
-    display: inline-block;
+.log-status-dot-inline {
     width: 8px;
     height: 8px;
-    background-color: #059669;;  /* 新日志提示颜色 */
     border-radius: 50%;
+    background: transparent;
+    display: flex;
+    flex-shrink: 0;
+    transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+.log-status-dot-inline.new-log-dot {
+    background-color: #059669;
     margin-left: 6px;
     animation: pulse 1.5s ease-in-out infinite;
 }

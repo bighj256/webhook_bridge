@@ -6,6 +6,9 @@ __pycache__/
 # C extensions
 *.so
 
+# 忽略根目录下的 test_mqtt.py
+test_mqtt.py
+
 # Distribution / packaging
 .Python
 build/
