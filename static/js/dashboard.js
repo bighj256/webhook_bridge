@@ -498,25 +498,33 @@ async function renderChartFromAPI() {
     const timeUnit = document.getElementById('modalTimeUnit').value;
     const chartType = document.getElementById('modalChartType').value;
 
-    let url = `/api/trend?params=${selectedFields.join(',')}`;
+    const params = encodeURIComponent(selectedFields.join(','));
+    let url = `/api/trend?params=${params}`;
 
     if (timeUnit === 'custom') {
-        const start = document.getElementById('customStartDate').value;
+        const start = document.getElementById('customStartDate').value; // "YYYY-MM-DDTHH:MM"
         const end = document.getElementById('customEndDate').value;
         if (!start) {
             showToast("⚠️ 输入失效", "自定义查询必须选择开始时间与日期", "warning");
             return;
         }
-        url += `&start=${start}`;
-        if (end) url += `&end=${end}`;
+        // datetime-local 格式需要编码，因为包含特殊字符
+        url += `&start=${encodeURIComponent(start)}`;
+        if (end) url += `&end=${encodeURIComponent(end)}`;
     } else {
-        url += `&unit=${timeUnit}`;
+        url += `&unit=${encodeURIComponent(timeUnit)}`;
     }
 
     try {
         const resp = await fetch(url);
         if (!resp.ok) throw new Error('Trend API error');
         const data = await resp.json();
+
+        // 检查数据是否为空
+        if (!data.labels || data.labels.length === 0) {
+            showToast("⚠️ 查询失败", "所选时间范围内暂无数据，请尝试调整时间范围或检查传感器是否正常工作", "warning");
+            return;
+        }
 
         if (currentChart) currentChart.destroy();
 
@@ -690,9 +698,9 @@ function exportCsv() {
         else if (timeUnit === '1h') start.setHours(start.getHours() - 1);
         else if (timeUnit === '6h') start.setHours(start.getHours() - 6);
         else if (timeUnit === '12h') start.setHours(start.getHours() - 12);
-        else if (timeUnit === 'hour') start.setHours(start.getHours() - 24);   // 建议改为 '24h'
-        else if (timeUnit === 'day') start.setDate(start.getDate() - 7);       // 建议改为 '7d'
-        else if (timeUnit === 'week') start.setDate(start.getDate() - 56);     // 建议改为 '8w'
+        else if (timeUnit === 'hour') start.setHours(start.getHours() - 24);
+        else if (timeUnit === 'day') start.setDate(start.getDate() - 7);
+        else if (timeUnit === 'week') start.setDate(start.getDate() - 56);
         else if (timeUnit === 'month') start.setFullYear(start.getFullYear() - 1);
         else if (timeUnit === 'year') start.setFullYear(start.getFullYear() - 5);
 
