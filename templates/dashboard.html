@@ -56,7 +56,7 @@
                 </button>
 
                 <button class="action-btn action-secondary" id="openLogModalBtn" title="打开系统运行日志终端窗口">
-                    <span aria-hidden="true">📋</span> 运行日志 
+                    <span aria-hidden="true">📋</span> 查看运行日志 
                     <span class="log-status-dot-inline" id="logStatusDotInline" aria-label="新日志提示"></span>
                 </button>
 
@@ -519,6 +519,7 @@
                         <option value="warn">🟡 系统警告</option>
                         <option value="error">🔴 异常告警</option>
                     </select>
+                    <span class="log-count-display" id="logCount">共 0 条日志</span>
                     <button class="log-btn" id="exportLogBtn" title="无损导出终端日志流">
                         <span aria-hidden="true">📥</span> 导出日志
                     </button>

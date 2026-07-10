@@ -946,23 +946,41 @@ document.addEventListener('DOMContentLoaded', () => {
 let systemLogs = [];
 let hasNewLog = false;  // 标记是否有新日志需要提示
 
+// 新增日志
+function addNewLog(log) {
+    systemLogs.push(log);
+    hasNewLog = true;           // 有新日志
+    updateLogCounts();          // 添加类，点亮状态点
+    saveLogs();
+}
 
+//保存日志
 function saveLogs() {
     localStorage.setItem('systemLogs', JSON.stringify(systemLogs));
 }
 
+// 初始化
+document.addEventListener('DOMContentLoaded', function() {
+    const saved = localStorage.getItem('systemLogs');
+    if (saved) {
+        systemLogs = JSON.parse(saved);
+    }
+    // hasNewLog 保持 false，视为已读
+    updateLogCounts();
+});
+
+//更新日志统计
 function updateLogCounts() {
     const total = systemLogs.length;
     const badgeEl = document.getElementById('logStatusDotInline');
 
     if (badgeEl) {
-        if (hasNewLog) {
-            badgeEl.classList.add('new-log-dot');  // 亮起，不自动熄灭
-        }
+        // 根据 hasNewLog 开关状态控制类
+        badgeEl.classList.toggle('new-log-dot', hasNewLog);
     }
 
     const countEl = document.getElementById('logCount');
-    if (countEl) countEl.innerText = total;
+    if (countEl) countEl.innerText = `共 ${total} 条日志`;
 
     const errCount = systemLogs.filter(l => l.level === 'error').length;
     const glanceErr = document.getElementById('glanceErrorCount');
@@ -970,6 +988,11 @@ function updateLogCounts() {
 }
 
 function openLogModal() {
+     // 标记所有日志已读（熄灭提示）
+    hasNewLog = false;
+    updateLogCounts();   // 移除 'new-log-dot' 类
+
+    // 打开模态框
     const modal = document.getElementById('logModal');
     if (modal) {
         modal.style.display = 'flex';
@@ -988,6 +1011,7 @@ function closeLogModal() {
     const modal = document.getElementById('logModal');
     if (modal) modal.style.display = 'none';
 }
+
 
 function openAiModal() {
     const modal = document.getElementById('aiModal');

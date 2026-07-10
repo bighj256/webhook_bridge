@@ -1001,6 +1001,16 @@ body {
     color: #030805;
 }
 
+.log-count-display {
+    padding: 0.45rem 1rem;
+    border-radius: 12px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    background: rgba(8, 20, 13, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
 /* CRT CRT Overlay effect Terminal */
 .log-terminal {
     background: #020603;
@@ -2721,7 +2731,7 @@ body.light-theme .settings-panel .form-group label {
     display: inline-block;
     width: 8px;
     height: 8px;
-    background-color: #4dffa6;  /* 新日志提示颜色 */
+    background-color: #059669;;  /* 新日志提示颜色 */
     border-radius: 50%;
     margin-left: 6px;
     animation: pulse 1.5s ease-in-out infinite;
